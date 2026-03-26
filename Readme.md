@@ -146,7 +146,7 @@ guardian_ledger/
 
 ---
 
-## Pipeline CI/CD *(optionnel)*
+## Pipeline CI/CD 
 
 ```bash
 # Lancer les tests unitaires
@@ -154,7 +154,7 @@ npm test
 ```
 
 > Les tests sont configurés via **Jest**. Le pipeline CI/CD est automatisé via **GitHub Actions** et déploie l'application à chaque push sur la branche `main`.  
-> Lien de déploiement : *[à compléter selon l'hébergeur choisi]*
+> Lien de déploiement : *pas encore réaliser*
 
 ---
 
