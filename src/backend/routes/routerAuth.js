@@ -59,13 +59,16 @@ router.get('/callback', async (req, res) => {
             }
         );
 
-        res.json({
-            statut: "Authentification Complète !",
-            accessToken: token,
-            vraiNom: profileResponse.data.Response.profile.data.userInfo.displayName,
-            personnages: profileResponse.data.Response.characters.data
-        });
+        // res.json({
+        //     statut: "Authentification Complète !",
+        //     accessToken: token,
+        //     vraiNom: profileResponse.data.Response.profile.data.userInfo.displayName,
+        //     personnages: profileResponse.data.Response.characters.data
+        // });
+        
+        const frontendUrl = process.env.FRONTEND_URL;
 
+        res.redirect(`${frontendUrl}/?token=${token}&membershipId=${bungieMembershipId}`);
     } catch (error) {
         console.error("Erreur :", error.response?.data || error.message);
         res.status(500).json({ erreur: "Erreur lors de l'authentification." });
