@@ -13,7 +13,7 @@ Guardian Ledger permet aux joueurs de Destiny 2 de consulter et gérer leur inve
 | Frontend     | Vue.js 3 + Vue Router + Vite         |
 | Backend      | Node.js 20+ avec Express 5           |
 | BDD Manifeste | SQLite via `better-sqlite3` — définitions d'objets Bungie |
-| BDD Joueurs  | SQLite — favoris et préférences des joueurs |
+| BDD Joueurs  | SQLite via **Prisma ORM** — gestion des utilisateurs       |
 | Sécurité     | OAuth 2.0 (Bungie API)               |
 | HTTP Client  | Axios                                |
 
@@ -131,7 +131,8 @@ guardian_ledger/
 | `src/backend`     | Serveur Express : point d'entrée, middlewares, configuration            |
 | `/routes`         | Définit les points d'entrée de l'API REST et délègue aux services       |
 | `/services`       | Logique métier : appels Bungie API et lecture SQLite                    |
-| `/data`           | Stockage persistant : manifeste Bungie et BDD joueurs (favoris)         |
+| `/prisma`         | Schéma Prisma et migrations pour la base utilisateurs (`users.db`)      |
+| `/data`           | Stockage persistant : manifeste Bungie et BDD joueurs (via Prisma)      |
 | `src/frontend`    | Interface Vue.js 3 : composants, vues et configuration Vite             |
 
 ---
@@ -143,6 +144,42 @@ guardian_ledger/
 | GET     | `/api/auth/login`          | Redirige vers la page d'autorisation Bungie  |
 | GET     | `/api/auth/callback`       | Reçoit le code OAuth retourné par Bungie     |
 | GET     | `/api/data/item/:hash`     | Retourne la définition d'un objet par hash   |
+
+---
+
+## Prisma ORM (BDD Utilisateurs)
+
+Prisma gère la base de données `users.db` (SQLite) dédiée aux utilisateurs de l'application, séparément du `manifest.db` de Bungie.
+
+### Schéma
+
+Le schéma se trouve dans `src/backend/prisma/schema.prisma`. Il contient un modèle `User` à compléter selon tes besoins.
+
+### Commandes Prisma
+
+```bash
+cd src/backend
+
+# Créer et appliquer une migration (développement)
+npx prisma migrate dev --name nom_de_la_migration
+
+# Appliquer les migrations en production
+npx prisma migrate deploy
+
+# Ouvrir l'interface visuelle Prisma Studio
+npx prisma studio
+
+# Regénérer le client Prisma après modification du schéma
+npx prisma generate
+```
+
+### Variable d'environnement
+
+Ajouter dans `src/backend/.env` :
+
+```env
+DATABASE_URL="file:./data/users.db"
+```
 
 ---
 

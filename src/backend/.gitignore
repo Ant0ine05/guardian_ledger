@@ -40,5 +40,8 @@ __screenshots__/
 
 # Manifest
 data/manifest.db
+data/user.db
 
 .env
+
+/generated/prisma
