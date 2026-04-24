@@ -1,6 +1,15 @@
 <template>
 <div class="app-root">
 
+  <!-- ── LOADING OVERLAY ── -->
+  <div class="loading-overlay" v-if="loading">
+    <div class="loading-spinner"></div>
+    <p class="loading-text">Chargement de ton inventaire...</p>
+  </div>
+
+  <!-- ── BUNGIE ERROR ── -->
+  <div class="bungie-error" v-if="bungieError && !loading">⚠ {{ bungieError }}</div>
+
   <!-- ── SIDEBAR ── -->
   <aside class="sidebar">
     <div class="sidebar-logo">
@@ -19,7 +28,7 @@
     >{{ nav.icon }}</button>
     <div class="sidebar-spacer"></div>
     <button class="nav-btn" title="Paramètres">⚙</button>
-    <div class="guardian-avatar">GD</div>
+    <div class="guardian-avatar">{{ userInitials }}</div>
   </aside>
 
   <!-- ── HEADER ── -->
@@ -27,6 +36,9 @@
     <div class="header-left">
       <span class="page-title">Guardian Ledger</span>
       <span class="season-badge">Season of the Cipher · S26</span>
+    </div>
+    <div class="header-center" v-if="displayName">
+      <span class="guardian-name">{{ displayName }}</span>
     </div>
     <div class="header-right">
       <div class="power-level">
@@ -86,7 +98,10 @@
             :class="item.rarity"
             @click="selectItem(item)"
           >
-            <div class="item-icon">{{ item.icon }}</div>
+            <div class="item-icon">
+              <img v-if="item.icon" :src="item.icon" :alt="item.name" class="item-icon-img" />
+              <span v-else>?</span>
+            </div>
             <div class="item-power">{{ item.power }}</div>
             <div class="item-type-bar"></div>
             <div class="tooltip">{{ item.name }}</div>
@@ -113,7 +128,10 @@
             :class="item.rarity"
             @click="selectItem(item)"
           >
-            <div class="item-icon">{{ item.icon }}</div>
+            <div class="item-icon">
+              <img v-if="item.icon" :src="item.icon" :alt="item.name" class="item-icon-img" />
+              <span v-else>?</span>
+            </div>
             <div class="item-power">{{ item.power }}</div>
             <div class="item-type-bar"></div>
             <div class="tooltip">{{ item.name }}</div>
@@ -136,8 +154,11 @@
             </div>
           </div>
           <div class="equipment-grid">
-            <div class="equip-slot" v-for="eq in character.equipped" :key="eq.slot">
-              <span class="equip-icon">{{ eq.icon }}</span>
+            <div class="equip-slot" v-for="eq in character.equipped" :key="eq.id || eq.slot">
+              <div class="equip-icon-wrap">
+                <img v-if="eq.icon" :src="eq.icon" :alt="eq.name" class="equip-icon-img" />
+                <span v-else class="equip-icon">?</span>
+              </div>
               <div class="equip-info">
                 <div class="equip-name">{{ eq.name }}</div>
                 <div class="equip-power">{{ eq.power }}</div>
@@ -209,7 +230,99 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+
+    const route  = useRoute()
+    const router = useRouter()
+    const API = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+
+    // ── Auth ──────────────────────────────────────────────────────────────
+    const displayName  = ref('')
+    const userInitials = ref('GD')
+    const loading      = ref(true)
+    const bungieError  = ref('')
+
+    function parseJwt(token) {
+      try { return JSON.parse(atob(token.split('.')[1])) } catch { return null }
+    }
+
+    function applyUser(token) {
+      const payload = parseJwt(token)
+      if (!payload) return
+      displayName.value  = payload.displayName || payload.email || 'Gardien'
+      const parts = displayName.value.replace('#', ' ').split(/\s+/)
+      userInitials.value = parts.length >= 2
+        ? (parts[0][0] + parts[1][0]).toUpperCase()
+        : displayName.value.slice(0, 2).toUpperCase()
+    }
+
+    // ── Fetch données Bungie réelles ──────────────────────────────────────
+    async function fetchDestinyData(token) {
+      try {
+        const res = await fetch(`${API}/api/me/destiny`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (res.status === 401) {
+          // Session expirée → retour login
+          localStorage.removeItem('app_token')
+          router.push('/login')
+          return
+        }
+        if (!res.ok) {
+          bungieError.value = 'Impossible de charger les données Bungie.'
+          return
+        }
+        const data = await res.json()
+
+        // Personnage
+        character.value = {
+          class:       data.character.class,
+          race:        data.character.race,
+          subclass:    data.character.subclass,
+          power:       data.character.power,
+          seasonLevel: data.character.seasonLevel,
+          xpPercent:   data.character.xpPercent,
+          equipped:    data.character.equipped,
+        }
+
+        // Inventaire
+        weapons.value = data.weapons
+        armor.value   = data.armor
+
+        // Stat "Puissance" mise à jour
+        stats.value[2].value = String(data.character.power)
+
+        // displayName depuis le serveur (plus fiable que le JWT)
+        if (data.displayName) {
+          displayName.value  = data.displayName
+          const parts = data.displayName.replace('#', ' ').split(/\s+/)
+          userInitials.value = parts.length >= 2
+            ? (parts[0][0] + parts[1][0]).toUpperCase()
+            : data.displayName.slice(0, 2).toUpperCase()
+        }
+      } catch {
+        bungieError.value = 'Erreur réseau.'
+      } finally {
+        loading.value = false
+      }
+    }
+
+    onMounted(async () => {
+      // Le callback Bungie redirige vers /dashboard?appToken=<jwt>
+      const urlToken = route.query.appToken
+      if (urlToken) {
+        localStorage.setItem('app_token', urlToken)
+        router.replace({ path: '/dashboard' })
+        applyUser(urlToken)
+        await fetchDestinyData(urlToken)
+        return
+      }
+      const stored = localStorage.getItem('app_token')
+      if (!stored) { router.push('/login'); return }
+      applyUser(stored)
+      await fetchDestinyData(stored)
+    })
 
     // ── Navigation ──
     const navItems = [
@@ -224,58 +337,27 @@ import { ref, computed } from 'vue'
 
     // ── Stats ──
     const stats = ref([
-      { label: 'Items en vault',       value: '347', trend: -3,  sub: 'depuis hier' },
-      { label: 'Exotiques collectés',  value: '84',  trend: 2,   sub: 'nouveaux cette semaine' },
-      { label: 'Puissance moyenne',    value: '1972',trend: 18,  sub: 'ce mois' },
-      { label: 'Glimmer',              value: '248K', trend: -2, sub: 'plafond à 250K' },
+      { label: 'Items en vault',      value: '—',    trend: 0,  sub: 'bientôt disponible' },
+      { label: 'Exotiques collectés', value: '—',    trend: 0,  sub: 'bientôt disponible' },
+      { label: 'Puissance moyenne',   value: '—',    trend: 0,  sub: 'personnage actif' },
+      { label: 'Glimmer',             value: '—',    trend: 0,  sub: 'bientôt disponible' },
     ])
 
-    // ── Character ──
+    // ── Character (données par défaut remplacées au fetch) ──
     const character = ref({
-      class: 'Chasseur',
-      race: 'Humain',
-      subclass: 'Crépusculaire',
-      power: 1985,
-      seasonLevel: 142,
-      xpPercent: 67,
-      equipped: [
-        { slot: 'helmet',  icon: '🪖', name: 'Calus Mini-Tool',    power: 1990 },
-        { slot: 'chest',   icon: '🦺', name: 'Syntho Chasseur',    power: 1985 },
-        { slot: 'heavy',   icon: '🔫', name: 'Gjallarhorn',        power: 1988 },
-        { slot: 'gloves',  icon: '🧤', name: 'Gants Ahamkara',     power: 1984 },
-      ]
+      class: '…', race: '', subclass: '', power: 0,
+      seasonLevel: 0, xpPercent: 0, equipped: []
     })
 
-    // ── Weapons ──
-    const searchQuery = ref('')
-    const weaponTabs = ['Tout', 'Cinétique', 'Énergie', 'Puissance']
+    // ── Weapons / Armor (vides jusqu'au fetch) ──
+    const searchQuery    = ref('')
+    const weaponTabs     = ['Tout', 'Cinétique', 'Énergie', 'Puissance']
     const activeWeaponTab = ref('Tout')
-    const armorTabs = ['Tout', 'Casque', 'Torse', 'Jambes']
-    const activeArmorTab = ref('Tout')
+    const armorTabs      = ['Tout', 'Casque', 'Torse', 'Jambes']
+    const activeArmorTab  = ref('Tout')
 
-    const weapons = ref([
-      { id:'w1',  name:'Gjallarhorn',          icon:'🔫', power:1990, rarity:'exotic',    type:'Cinétique' },
-      { id:'w2',  name:'Le Destin Ardent',     icon:'🏹', power:1985, rarity:'exotic',    type:'Énergie' },
-      { id:'w3',  name:'Wendigo GL3',           icon:'🔧', power:1982, rarity:'legendary', type:'Puissance' },
-      { id:'w4',  name:'Félicitations',         icon:'⚔️', power:1980, rarity:'legendary', type:'Cinétique' },
-      { id:'w5',  name:'Brise-talons',          icon:'🪃', power:1978, rarity:'legendary', type:'Énergie' },
-      { id:'w6',  name:'Alésage de précision',  icon:'🔩', power:1965, rarity:'rare',      type:'Cinétique' },
-      { id:'w7',  name:'Lame de Crépuscule',    icon:'🗡️', power:1983, rarity:'legendary', type:'Énergie' },
-      { id:'w8',  name:'Invective',             icon:'💥', power:1988, rarity:'exotic',    type:'Cinétique' },
-      { id:'w9',  name:'Complice',              icon:'🔫', power:1960, rarity:'rare',      type:'Puissance' },
-      { id:'w10', name:'Mémoire de Nezarec',    icon:'🎯', power:1979, rarity:'legendary', type:'Énergie' },
-      { id:'w11', name:'Scories stellaires',    icon:'🪚', power:1940, rarity:'common',    type:'Cinétique' },
-      { id:'w12', name:'Tonnerre du Vide',      icon:'⚡', power:1982, rarity:'legendary', type:'Puissance' },
-    ])
-
-    const armor = ref([
-      { id:'a1', name:'Casque du Dernier Souffle', icon:'🪖', power:1990, rarity:'exotic',    type:'Casque' },
-      { id:'a2', name:'Plastron Syntho',           icon:'🦺', power:1985, rarity:'legendary', type:'Torse' },
-      { id:'a3', name:'Gants Ahamkara',            icon:'🧤', power:1984, rarity:'legendary', type:'Mains' },
-      { id:'a4', name:'Bottes de Skullfort',       icon:'👟', power:1981, rarity:'legendary', type:'Jambes' },
-      { id:'a5', name:'Fragment de Lumière',        icon:'💎', power:1970, rarity:'rare',      type:'Casque' },
-      { id:'a6', name:'Marque du Bouclier',         icon:'🛡️', power:1982, rarity:'legendary', type:'Torse' },
-    ])
+    const weapons = ref([])
+    const armor   = ref([])
 
     const filteredWeapons = computed(() => {
       let list = weapons.value
@@ -295,22 +377,16 @@ import { ref, computed } from 'vue'
 
     // ── Activities ──
     const activities = ref([
-      { name:'Raid — Caverne des Ombres', icon:'🌙', sub:'Recommandé · 1970+',       reward:'+12 000', bg:'rgba(145,142,244,.15)' },
-      { name:'Épreuve d\'Osiris',          icon:'⚡', sub:'3 victoires restantes',    reward:'Exotique', bg:'rgba(48,107,172,.15)'  },
-      { name:'Contrat journalier',          icon:'🎯', sub:'Tuer 50 Cabales',          reward:'2 500 XP', bg:'rgba(111,156,235,.10)' },
+      { name:"Raid — Caverne des Ombres", icon:'🌙', sub:'Recommandé · 1970+',    reward:'+12 000', bg:'rgba(145,142,244,.15)' },
+      { name:"Épreuve d'Osiris",          icon:'⚡', sub:'3 victoires restantes', reward:'Exotique', bg:'rgba(48,107,172,.15)'  },
+      { name:'Contrat journalier',         icon:'🎯', sub:'Tuer 50 Cabales',       reward:'2 500 XP', bg:'rgba(111,156,235,.10)' },
     ])
 
     // ── Item detail ──
     const selectedItem = ref(null)
-    const selectItem = (item) => { selectedItem.value = item }
-    const equipItem = (item) => {
-      showToast(`${item.name} équipé !`)
-      selectedItem.value = null
-    }
-    const transferItem = (item) => {
-      showToast(`${item.name} transféré au coffre.`)
-      selectedItem.value = null
-    }
+    const selectItem   = (item) => { selectedItem.value = item }
+    const equipItem    = (item) => { showToast(`${item.name} équipé !`);       selectedItem.value = null }
+    const transferItem = (item) => { showToast(`${item.name} transféré.`);     selectedItem.value = null }
 
     // ── Toast ──
     const toastVisible = ref(false)
@@ -419,6 +495,13 @@ import { ref, computed } from 'vue'
     padding:4px 10px;border-radius:4px;
   }
   .header-right{display:flex;align-items:center;gap:16px}
+  .header-center{flex:1;display:flex;justify-content:center}
+  .guardian-name{
+    font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;
+    letter-spacing:1px;color:var(--soft-periwinkle);
+    background:rgba(145,142,244,.08);border:1px solid rgba(145,142,244,.15);
+    padding:4px 14px;border-radius:20px;
+  }
   .power-level{display:flex;align-items:center;gap:8px;font-family:'Rajdhani',sans-serif}
   .power-icon{color:#f4c441;font-size:16px}
   .power-num{font-size:22px;font-weight:700;color:#f4c441;letter-spacing:1px}
@@ -490,7 +573,8 @@ import { ref, computed } from 'vue'
   .item-slot.exotic:hover{border-color:#f4c441;box-shadow:0 4px 20px rgba(244,196,65,.25)}
   .item-slot.legendary{border-color:rgba(145,102,197,.4);background:linear-gradient(135deg,rgba(145,102,197,.05),var(--surface))}
   .item-slot.empty{border-style:dashed;opacity:.3}
-  .item-icon{font-size:26px;line-height:1}
+  .item-icon{font-size:26px;line-height:1;display:flex;align-items:center;justify-content:center}
+  .item-icon-img{width:40px;height:40px;object-fit:contain;display:block}
   .item-power{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;color:#f4c441}
   .item-type-bar{position:absolute;bottom:0;left:0;right:0;height:3px}
   .item-slot.exotic .item-type-bar{background:#f4c441}
@@ -530,6 +614,28 @@ import { ref, computed } from 'vue'
   }
   .equip-slot:hover{border-color:rgba(111,156,235,.3);background:rgba(26,34,82,.8)}
   .equip-icon{font-size:20px}
+  .equip-icon-wrap{width:36px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+  .equip-icon-img{width:36px;height:36px;object-fit:contain;border-radius:4px}
+
+  /* ─── LOADING OVERLAY ─── */
+  .loading-overlay{
+    position:fixed;inset:0;background:rgba(13,18,48,.9);z-index:100;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  }
+  .loading-spinner{
+    width:40px;height:40px;border:3px solid rgba(145,142,244,.2);
+    border-top-color:#918EF4;border-radius:50%;
+    animation:spin .8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-text{font-family:'Rajdhani',sans-serif;font-size:16px;color:#6a85b8;letter-spacing:1px}
+
+  /* ─── BUNGIE ERROR ─── */
+  .bungie-error{
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+    background:rgba(255,80,80,.1);border:1px solid rgba(255,80,80,.3);
+    color:#ff9090;padding:10px 20px;border-radius:8px;font-size:13px;z-index:50;
+  }
   .equip-info{flex:1;min-width:0}
   .equip-name{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .equip-power{font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;color:#f4c441}

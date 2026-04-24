@@ -5,7 +5,6 @@
     <div v-if="estConnecte">
       <p>✅ Authentification Bungie réussie !</p>
       <p>Ton Membership ID : {{ membershipId }}</p>
-      <p>Ton Token : {{ token }}</p>
     </div>
     
     <button @click="lancerConnexion">S'identifier avec Bungie</button>

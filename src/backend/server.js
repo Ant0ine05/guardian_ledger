@@ -9,10 +9,12 @@ app.use(express.json());
 // Import de tes fichiers
 const authRoutes = require('./routes/routerAuth');
 const dataRoutes = require('./routes/routerData');
+const meRoutes   = require('./routes/routerMe');
 
 // Utilisation des routes
 app.use('/api/auth', authRoutes);
 app.use('/api/data', dataRoutes);
+app.use('/api/me',   meRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
