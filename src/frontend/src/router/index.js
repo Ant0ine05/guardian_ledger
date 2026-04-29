@@ -19,6 +19,12 @@ const router = createRouter({
       component: () => import('../views/Dashboard.vue'),
       meta: { requiresAuth: true },
     },
+    {
+      path: '/vault',
+      name: 'vault',
+      component: () => import('../views/Vault.vue'),
+      meta: { requiresAuth: true },
+    },
   ],
 })
 

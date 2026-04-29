@@ -130,6 +130,8 @@ router.get('/callback', async (req, res) => {
         );
 
         const bungieToken = tokenResponse.data.access_token;
+        const bungieRefreshToken = tokenResponse.data.refresh_token;
+        const bungieTokenExpiresAt = new Date(Date.now() + tokenResponse.data.expires_in * 1000);
         const bungieMembershipId = String(tokenResponse.data.membership_id);
 
         // Récupérer le displayName Bungie
@@ -151,11 +153,24 @@ router.get('/callback', async (req, res) => {
 
         // Lier le compte en DB
         if (userId) {
+            // Détacher ce bungieMembershipId d'un autre compte s'il est déjà pris
+            await prisma.user.updateMany({
+                where: { bungieMembershipId, id: { not: userId } },
+                data: {
+                    bungieMembershipId: null,
+                    bungieAccessToken: null,
+                    bungieRefreshToken: null,
+                    bungieTokenExpiresAt: null,
+                },
+            });
+
             await prisma.user.update({
                 where: { id: userId },
                 data: {
                     bungieMembershipId,
                     bungieAccessToken: bungieToken,
+                    bungieRefreshToken,
+                    bungieTokenExpiresAt,
                     displayName,
                 },
             });
