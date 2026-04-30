@@ -42,8 +42,10 @@ function buildItem(itemHash, itemInstanceId, instances, index) {
         icon,
         power,
         rarity,
-        type:       BUCKET_LABEL[bucketHash] || '',
+        type:          BUCKET_LABEL[bucketHash] || '',
         bucketHash,
+        guardianClass: { 0: 'Titan', 1: 'Chasseur', 2: 'Arcaniste' }[def.classType] ?? 'Universel',
+        instanced:     !!itemInstanceId,
     };
 }
 
@@ -55,16 +57,57 @@ function dedupe(items) {
     });
 }
 
+// ── Refresh du token Bungie si expiré ─────────────────────────────────────
+async function ensureFreshToken(user) {
+    const now = new Date();
+    const expiresAt = user.bungieTokenExpiresAt ? new Date(user.bungieTokenExpiresAt) : null;
+    // Refresh si expiré ou expire dans moins de 5 minutes
+    if (expiresAt && now < new Date(expiresAt.getTime() - 5 * 60 * 1000)) {
+        return user.bungieAccessToken;
+    }
+
+    if (!user.bungieRefreshToken)
+        throw new Error('Refresh token Bungie manquant. Reconnecte ton compte Bungie.');
+
+    const params = new URLSearchParams();
+    params.append('grant_type', 'refresh_token');
+    params.append('refresh_token', user.bungieRefreshToken);
+    params.append('client_id', process.env.CLIENT_ID);
+    params.append('client_secret', process.env.CLIENT_SECRET);
+
+    const tokenRes = await axios.post(
+        'https://www.bungie.net/platform/app/oauth/token/',
+        params,
+        { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-API-Key': process.env.BUNGIE_API_KEY } }
+    );
+
+    const newAccessToken    = tokenRes.data.access_token;
+    const newRefreshToken   = tokenRes.data.refresh_token;
+    const newExpiresAt      = new Date(Date.now() + tokenRes.data.expires_in * 1000);
+
+    await prisma.user.update({
+        where: { id: user.id },
+        data: {
+            bungieAccessToken:    newAccessToken,
+            bungieRefreshToken:   newRefreshToken,
+            bungieTokenExpiresAt: newExpiresAt,
+        },
+    });
+
+    return newAccessToken;
+}
+
 // ── GET /api/me/destiny ───────────────────────────────────────────────────
 router.get('/destiny', requireAuth, async (req, res) => {
     try {
         const user = await prisma.user.findUnique({ where: { id: req.user.userId } });
-        if (!user?.bungieAccessToken)
-            return res.status(401).json({ error: 'Token Bungie manquant. Reconnecte-toi.' });
+        if (!user?.bungieMembershipId)
+            return res.status(401).json({ error: 'Compte Bungie non lié. Reconnecte-toi.' });
 
+        const accessToken = await ensureFreshToken(user);
         const headers = {
             'X-API-Key':     process.env.BUNGIE_API_KEY,
-            'Authorization': `Bearer ${user.bungieAccessToken}`,
+            'Authorization': `Bearer ${accessToken}`,
         };
 
         // 1. Memberships Destiny 2
@@ -78,9 +121,9 @@ router.get('/destiny', requireAuth, async (req, res) => {
 
         const { membershipId, membershipType } = memberships[0];
 
-        // 2. Profil complet : personnages + équipement + inventaire + instances
+        // 2. Profil complet : coffre (102) + personnages + équipement + inventaire + instances
         const profileRes = await axios.get(
-            `https://www.bungie.net/Platform/Destiny2/${membershipType}/Profile/${membershipId}/?components=200,201,205,300`,
+            `https://www.bungie.net/Platform/Destiny2/${membershipType}/Profile/${membershipId}/?components=102,200,201,205,300`,
             { headers }
         );
         const profile = profileRes.data.Response;
@@ -147,11 +190,38 @@ router.get('/destiny', requireAuth, async (req, res) => {
         const weapons = dedupe(allItems.filter(i => WEAPON_BUCKETS.has(i.bucketHash)));
         const armor   = dedupe(allItems.filter(i => ARMOR_BUCKETS.has(i.bucketHash) && i.power > 0));
 
+        // 7. Vault (coffre partagé — composant 102)
+        const VAULT_BUCKET = 138197802;
+        const profileInventoryItems = profile.profileInventory?.data?.items || [];
+        const vaultRaw = profileInventoryItems.filter(it => it.bucketHash === VAULT_BUCKET);
+        const vaultItems = [];
+        vaultRaw.forEach((it, i) => {
+            const item = buildItem(it.itemHash, it.itemInstanceId, instances, i);
+            if (item) vaultItems.push(item);
+        });
+
+        const vault = {
+            kinetic:   vaultItems.filter(i => i.bucketHash === 1498876634),
+            energy:    vaultItems.filter(i => i.bucketHash === 2465295065),
+            power:     vaultItems.filter(i => i.bucketHash === 953998645),
+            helmet:    vaultItems.filter(i => i.bucketHash === 3448274439),
+            gauntlets: vaultItems.filter(i => i.bucketHash === 3551918588),
+            chest:     vaultItems.filter(i => i.bucketHash === 14239492),
+            legs:      vaultItems.filter(i => i.bucketHash === 20886954),
+            classItem: vaultItems.filter(i => i.bucketHash === 1585787867),
+        };
+
+        // Capacité max du vault depuis le manifest
+        const vaultBucketDef = getDefinition('DestinyInventoryBucketDefinition', String(VAULT_BUCKET));
+        const vaultCapacity  = vaultBucketDef?.itemCount ?? 1000;
+
         res.json({
-            characters:  characterCards,
+            characters:    characterCards,
             weapons,
             armor,
-            displayName: user.displayName,
+            vault,
+            vaultCapacity,
+            displayName:   user.displayName,
         });
 
     } catch (err) {
@@ -159,6 +229,79 @@ router.get('/destiny', requireAuth, async (req, res) => {
         if (err.response?.status === 401)
             return res.status(401).json({ error: 'Session Bungie expirée. Reconnecte-toi.' });
         res.status(500).json({ error: 'Erreur lors de la récupération des données Bungie.' });
+    }
+});
+
+// ── GET /api/me/item-detail/:instanceId ──────────────────────────────────
+const PERK_SKIP = ['shader', 'ornament', 'masterwork', 'empty', 'mod_armor_energy', 'holographic'];
+
+router.get('/item-detail/:instanceId', requireAuth, async (req, res) => {
+    try {
+        const { instanceId } = req.params;
+        const user = await prisma.user.findUnique({ where: { id: req.user.userId } });
+        if (!user?.bungieMembershipId)
+            return res.status(401).json({ error: 'Compte Bungie non lié.' });
+
+        const accessToken = await ensureFreshToken(user);
+        const headers = {
+            'X-API-Key':     process.env.BUNGIE_API_KEY,
+            'Authorization': `Bearer ${accessToken}`,
+        };
+
+        const membRes = await axios.get(
+            `https://www.bungie.net/Platform/User/GetMembershipsById/${user.bungieMembershipId}/254/`,
+            { headers }
+        );
+        const { membershipId, membershipType } = membRes.data.Response.destinyMemberships[0];
+
+        const itemRes = await axios.get(
+            `https://www.bungie.net/Platform/Destiny2/${membershipType}/Profile/${membershipId}/Item/${instanceId}/?components=304,305`,
+            { headers }
+        );
+        const itemData = itemRes.data.Response;
+
+        // Stats
+        const statsRaw = itemData.stats?.data?.stats || {};
+        const stats = [];
+        for (const [statHash, statData] of Object.entries(statsRaw)) {
+            if (statData.displayMaximum === 0 && statData.value === 0) continue;
+            const statDef = getDefinition('DestinyStatDefinition', statHash);
+            if (!statDef?.displayProperties?.name) continue;
+            stats.push({
+                name:  statDef.displayProperties.name,
+                value: statData.value,
+                max:   statData.displayMaximum || 100,
+            });
+        }
+
+        // Perks (sockets)
+        const socketsRaw = itemData.sockets?.data?.sockets || [];
+        const perks = [];
+        for (const socket of socketsRaw) {
+            if (!socket.plugHash || !socket.isEnabled) continue;
+            const plugDef = getDefinition('DestinyInventoryItemDefinition', String(socket.plugHash));
+            if (!plugDef) continue;
+            const name = plugDef.displayProperties?.name;
+            const desc = plugDef.displayProperties?.description;
+            if (!name) continue;
+            const cat = plugDef.plug?.plugCategoryIdentifier || '';
+            if (PERK_SKIP.some(x => cat.includes(x))) continue;
+            if (!desc && !cat.includes('intrinsic')) continue;
+            perks.push({
+                name,
+                description: desc || '',
+                icon:        plugDef.displayProperties?.icon ? `https://www.bungie.net${plugDef.displayProperties.icon}` : '',
+                isIntrinsic: cat.includes('intrinsic'),
+            });
+        }
+
+        res.json({ stats, perks });
+
+    } catch (err) {
+        console.error('Erreur item-detail:', err.response?.data || err.message);
+        if (err.response?.status === 401)
+            return res.status(401).json({ error: 'Session Bungie expirée.' });
+        res.status(500).json({ error: 'Erreur lors de la récupération des détails.' });
     }
 });
 

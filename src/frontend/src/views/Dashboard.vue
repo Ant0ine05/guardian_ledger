@@ -64,8 +64,8 @@
       </div>
       <div class="stat-card">
         <div class="stat-label">Vault</div>
-        <div class="stat-value">—</div>
-        <div class="stat-sub">bientôt disponible</div>
+        <div class="stat-value">{{ vaultTotal }}</div>
+        <div class="stat-sub">/ {{ vaultCapacity }} emplacements</div>
       </div>
     </div>
 
@@ -226,7 +226,9 @@ function applyUser(token) {
 }
 
 // Data
-const characters = ref([])
+const characters   = ref([])
+const vaultTotal    = ref(0)
+const vaultCapacity = ref('—')
 
 const maxPower = computed(() =>
   characters.value.length ? Math.max(...characters.value.map(c => c.power)) : 0
@@ -253,6 +255,10 @@ async function fetchDestinyData(token) {
     }
     const data = await res.json()
     characters.value = data.characters || []
+    if (data.vault) {
+      vaultTotal.value    = Object.values(data.vault).reduce((s, arr) => s + arr.length, 0)
+      vaultCapacity.value = data.vaultCapacity ?? '—'
+    }
 
     if (data.displayName) {
       displayName.value  = data.displayName
