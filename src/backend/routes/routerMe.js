@@ -38,6 +38,7 @@ function buildItem(itemHash, itemInstanceId, instances, index) {
 
     return {
         id:         itemInstanceId || `${itemHash}_${index}`,
+        itemHash:   itemHash,
         name:       def.displayProperties?.name || 'Inconnu',
         icon,
         power,
@@ -233,7 +234,10 @@ router.get('/destiny', requireAuth, async (req, res) => {
 });
 
 // ── GET /api/me/item-detail/:instanceId ──────────────────────────────────
-const PERK_SKIP = ['shader', 'ornament', 'masterwork', 'empty', 'mod_armor_energy', 'holographic'];
+// Catégories de sockets à ignorer
+const SOCK_SKIP = ['shader', 'ornament', 'masterwork', 'empty', 'mod_armor_energy',
+                   'holographic', 'aspect', 'fragment', 'abilities', 'stasis',
+                   'void.ability', 'arc.ability', 'solar.ability'];
 
 router.get('/item-detail/:instanceId', requireAuth, async (req, res) => {
     try {
@@ -254,48 +258,127 @@ router.get('/item-detail/:instanceId', requireAuth, async (req, res) => {
         );
         const { membershipId, membershipType } = membRes.data.Response.destinyMemberships[0];
 
+        // 307=ItemCommonData(itemHash), 304=Stats, 305=Sockets, 310=ReusablePlugs
         const itemRes = await axios.get(
-            `https://www.bungie.net/Platform/Destiny2/${membershipType}/Profile/${membershipId}/Item/${instanceId}/?components=304,305`,
+            `https://www.bungie.net/Platform/Destiny2/${membershipType}/Profile/${membershipId}/Item/${instanceId}/?components=307,304,305,310`,
             { headers }
         );
         const itemData = itemRes.data.Response;
 
-        // Stats
+        // ── Définition item ──────────────────────────────────────────────
+        const itemHash = itemData.item?.data?.itemHash;
+        const itemDef  = itemHash ? getDefinition('DestinyInventoryItemDefinition', String(itemHash)) : null;
+
+        // Ordre des stats depuis le StatGroup
+        const sgHash   = itemDef?.stats?.statGroupHash;
+        const sgDef    = sgHash ? getDefinition('DestinyStatGroupDefinition', String(sgHash)) : null;
+        const statOrder = {};
+        (sgDef?.scaledStats || []).forEach((s, i) => { statOrder[String(s.statHash)] = i; });
+
+        // ── Stats ────────────────────────────────────────────────────────
         const statsRaw = itemData.stats?.data?.stats || {};
         const stats = [];
         for (const [statHash, statData] of Object.entries(statsRaw)) {
-            if (statData.displayMaximum === 0 && statData.value === 0) continue;
+            if (statData.value === 0 && statData.displayMaximum === 0) continue;
             const statDef = getDefinition('DestinyStatDefinition', statHash);
             if (!statDef?.displayProperties?.name) continue;
             stats.push({
                 name:  statDef.displayProperties.name,
                 value: statData.value,
-                max:   statData.displayMaximum || 100,
+                max:   statData.displayMaximum || 0,
+                noBar: statData.displayMaximum === 0,
+                order: statOrder[statHash] ?? 999,
             });
         }
+        stats.sort((a, b) => a.order - b.order);
 
-        // Perks (sockets)
-        const socketsRaw = itemData.sockets?.data?.sockets || [];
-        const perks = [];
-        for (const socket of socketsRaw) {
-            if (!socket.plugHash || !socket.isEnabled) continue;
-            const plugDef = getDefinition('DestinyInventoryItemDefinition', String(socket.plugHash));
-            if (!plugDef) continue;
-            const name = plugDef.displayProperties?.name;
-            const desc = plugDef.displayProperties?.description;
-            if (!name) continue;
-            const cat = plugDef.plug?.plugCategoryIdentifier || '';
-            if (PERK_SKIP.some(x => cat.includes(x))) continue;
-            if (!desc && !cat.includes('intrinsic')) continue;
-            perks.push({
-                name,
-                description: desc || '',
-                icon:        plugDef.displayProperties?.icon ? `https://www.bungie.net${plugDef.displayProperties.icon}` : '',
-                isIntrinsic: cat.includes('intrinsic'),
-            });
+        // ── Sockets (tous les plugs possibles via PlugSetDefinition) ──────
+        const socketsRaw  = itemData.sockets?.data?.sockets || [];
+        const reusable    = itemData.reusablePlugs?.data?.plugs || {};
+        const socketEntries = itemDef?.sockets?.socketEntries || [];
+        const sockets     = [];
+
+        for (let i = 0; i < socketsRaw.length; i++) {
+            const sock      = socketsRaw[i];
+            const sockEntry = socketEntries[i] || {};
+            if (!sock.plugHash || sock.isVisible === false) continue;
+
+            const aDef = getDefinition('DestinyInventoryItemDefinition', String(sock.plugHash));
+            if (!aDef) continue;
+            const aCat = aDef.plug?.plugCategoryIdentifier || '';
+
+            if (SOCK_SKIP.some(x => aCat.includes(x))) continue;
+            if (!aCat) continue; // catégorie vide = masterwork tier ou slot vide
+            // Bloquer les vrais mods d'énergie/ajustement, mais pas les perks/origins
+            const MOD_BLOCK = /_(energy|adjusting|sights|tracker|mod_mag|mod_armor|mod_empty)/;
+            if (/^v[0-9]+\.(weapon|armor|empty)\.mod/.test(aCat) && MOD_BLOCK.test(aCat)) continue;
+
+            // Catégorie du socket
+            let category;
+            if (aCat.includes('intrinsic')) {
+                category = 'intrinsic';
+            } else if (aCat.includes('barrel') || aCat.includes('scope') ||
+                       aCat.includes('bowstring') || aCat.includes('string') ||
+                       aCat.includes('blade')     || aCat.includes('projectile')) {
+                category = 'barrel';
+            } else if (aCat.includes('magazine') || aCat.includes('arrow') ||
+                       aCat.includes('battery')  || aCat.includes('guard') ||
+                       aCat.includes('grip')) {
+                category = 'magazine';
+            } else {
+                category = 'perk';
+            }
+
+            // 1. Plugs depuis le PlugSet (randomized ou reusable) → TOUS les rolls possibles
+            const allHashes = new Set();
+            const plugSetHash = sockEntry.randomizedPlugSetHash || sockEntry.reusablePlugSetHash;
+            if (plugSetHash) {
+                const plugSetDef = getDefinition('DestinyPlugSetDefinition', String(plugSetHash));
+                for (const p of (plugSetDef?.reusablePlugItems || [])) {
+                    allHashes.add(p.plugItemHash);
+                }
+            }
+            // 2. Compléter avec les reusablePlug de l'instance et le plug actif
+            for (const p of (reusable[i] || [])) allHashes.add(p.plugItemHash);
+            allHashes.add(sock.plugHash);
+
+            const plugsArr = [];
+            const seenNames = new Set();
+            for (const ph of allHashes) {
+                const pd = getDefinition('DestinyInventoryItemDefinition', String(ph));
+                if (!pd?.displayProperties?.name) continue;
+                const pname = pd.displayProperties.name;
+                if (seenNames.has(pname)) continue; // doublon de nom → ignorer
+                const pcat = pd.plug?.plugCategoryIdentifier || '';
+                if (!pcat) continue; // catégorie vide = masterwork tier
+                if (SOCK_SKIP.some(x => pcat.includes(x))) continue;
+                const MOD_BLOCK_P = /_(energy|adjusting|sights|tracker|mod_mag|mod_armor|mod_empty)/;
+                if (/^v[0-9]+\.(weapon|armor|empty)\.mod/.test(pcat) && MOD_BLOCK_P.test(pcat)) continue;
+                seenNames.add(pname);
+                plugsArr.push({
+                    hash:        ph,
+                    name:        pname,
+                    description: pd.displayProperties.description || '',
+                    icon:        pd.displayProperties.icon
+                                 ? `https://www.bungie.net${pd.displayProperties.icon}`
+                                 : '',
+                    isActive:    ph === sock.plugHash,
+                });
+            }
+
+            if (!plugsArr.length) continue;
+            // Plug actif en premier
+            plugsArr.sort((a, b) => (b.isActive ? 1 : 0) - (a.isActive ? 1 : 0));
+            sockets.push({ index: i, category, plugs: plugsArr });
         }
 
-        res.json({ stats, perks });
+        res.json({
+            stats,
+            sockets,
+            flavorText: itemDef?.flavorText      || '',
+            source:     itemDef?.displaySource   || '',
+            itemHash:   itemHash || null,
+        });
 
     } catch (err) {
         console.error('Erreur item-detail:', err.response?.data || err.message);

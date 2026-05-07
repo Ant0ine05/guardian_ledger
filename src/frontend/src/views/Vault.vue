@@ -118,73 +118,14 @@
 
   </main>
 
-  <!-- ITEM DETAIL OVERLAY -->
-  <div class="item-selected-overlay" v-if="selectedItem" @click.self="selectedItem = null">
-    <div class="item-detail">
-      <button class="item-detail-close" @click="selectedItem = null">✕</button>
-
-      <!-- En-tête -->
-      <div class="item-detail-header">
-        <div class="item-detail-icon-wrap" :class="selectedItem.rarity">
-          <img v-if="selectedItem.icon" :src="selectedItem.icon" :alt="selectedItem.name" class="item-detail-img" />
-          <span v-else>?</span>
-        </div>
-        <div class="item-detail-meta">
-          <div class="item-detail-name">{{ selectedItem.name }}</div>
-          <div class="item-detail-sub">
-            <span class="item-detail-rarity-badge" :class="selectedItem.rarity">{{ selectedItem.rarity }}</span>
-            <span class="item-detail-type">{{ selectedItem.type }}</span>
-            <span class="item-detail-class" v-if="selectedItem.guardianClass !== 'Universel'">· {{ selectedItem.guardianClass }}</span>
-          </div>
-          <div class="item-detail-power-row">
-            <span class="item-detail-power-icon">✦</span>
-            <span class="item-detail-power-val">{{ selectedItem.power }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Chargement -->
-      <div class="item-detail-loading" v-if="detailLoading">
-        <div class="loading-spinner" style="width:24px;height:24px;border-width:3px"></div>
-      </div>
-
-      <!-- Corps : stats + perks -->
-      <div class="item-detail-body" v-else-if="itemDetail">
-
-        <!-- Stats -->
-        <div class="item-detail-section" v-if="itemDetail.stats.length">
-          <div class="item-detail-section-title">Statistiques</div>
-          <div class="item-stat-row" v-for="stat in itemDetail.stats" :key="stat.name">
-            <div class="item-stat-name">{{ stat.name }}</div>
-            <div class="item-stat-bar-wrap">
-              <div class="item-stat-bar" :style="{ width: Math.min(100, (stat.value / stat.max) * 100) + '%', '--pct': Math.min(100, (stat.value / stat.max) * 100) }"></div>
-            </div>
-            <div class="item-stat-value">{{ stat.value }}</div>
-          </div>
-        </div>
-
-        <!-- Perks -->
-        <div class="item-detail-section" v-if="itemDetail.perks.length">
-          <div class="item-detail-section-title">Aptitudes</div>
-          <div class="perk-row" v-for="perk in itemDetail.perks" :key="perk.name" :class="{ intrinsic: perk.isIntrinsic }">
-            <img v-if="perk.icon" :src="perk.icon" class="perk-icon" :alt="perk.name" />
-            <div v-else class="perk-icon perk-icon-placeholder">◈</div>
-            <div class="perk-info">
-              <div class="perk-name">{{ perk.name }}</div>
-              <div class="perk-desc" v-if="perk.description">{{ perk.description }}</div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Item non instancié (consumable, etc.) -->
-      <div class="item-detail-loading" v-else-if="!selectedItem.instanced">
-        <span style="color:var(--text-muted);font-size:13px">Pas de stats disponibles pour cet item.</span>
-      </div>
-
-    </div>
-  </div>
+  <!-- ITEM DETAIL MODAL -->
+  <ItemDetailModal
+    v-if="selectedItem"
+    :item="selectedItem"
+    :detail="itemDetail"
+    :loading="detailLoading"
+    @close="selectedItem = null"
+  />
 
   <!-- TOAST -->
   <div class="toast" :class="{show: toastVisible}">
@@ -198,6 +139,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import ItemDetailModal from '../component/ItemDetailModal.vue'
 
 const route  = useRoute()
 const router = useRouter()
