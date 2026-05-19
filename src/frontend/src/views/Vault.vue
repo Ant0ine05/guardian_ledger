@@ -124,7 +124,9 @@
     :item="selectedItem"
     :detail="itemDetail"
     :loading="detailLoading"
+    :characters="characters"
     @close="selectedItem = null"
+    @transfer="handleTransfer"
   />
 
   <!-- TOAST -->
@@ -166,6 +168,7 @@ function applyUser(token) {
 }
 
 // Data
+const characters = ref([])
 const vault = ref({
   kinetic: [], energy: [], power: [],
   helmet: [], gauntlets: [], chest: [], legs: [], classItem: []
@@ -275,6 +278,7 @@ async function fetchDestinyData(token) {
     }
     const data = await res.json()
     vault.value = data.vault || vault.value
+    characters.value = data.characters || []
     vaultCapacity.value = data.vaultCapacity ?? '—'
 
     if (data.displayName) {
@@ -339,5 +343,31 @@ const showToast = (msg) => {
   toastVisible.value = true
   if (toastTimer) clearTimeout(toastTimer)
   toastTimer = setTimeout(() => { toastVisible.value = false }, 2800)
+}
+
+// Transfer
+async function handleTransfer({ instanceId, itemHash, transferToVault, characterId }) {
+  try {
+    const token = localStorage.getItem('app_token')
+    const res = await fetch(`${API}/api/me/transfer-item`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ instanceId, itemHash, transferToVault, characterId })
+    })
+    const data = await res.json()
+    if (!res.ok) {
+      showToast(`❌ ${data.error || 'Erreur de transfert'}`)
+      return
+    }
+    showToast(transferToVault ? '✅ Envoyé dans le coffre' : '✅ Transféré au gardien')
+    // Invalider le cache et fermer la modal
+    detailCache.delete(instanceId)
+    selectedItem.value = null
+    // Recharger les données du vault
+    const stored = localStorage.getItem('app_token')
+    if (stored) await fetchDestinyData(stored)
+  } catch {
+    showToast('❌ Erreur réseau lors du transfert')
+  }
 }
 </script>

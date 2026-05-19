@@ -142,6 +142,7 @@ router.get('/destiny', requireAuth, async (req, res) => {
         const characterCards = charIds.map(cId => {
             const c           = charsData[cId];
             const equippedRaw = profile.characterEquipment?.data?.[cId]?.items || [];
+            const invRaw      = profile.characterInventories?.data?.[cId]?.items || [];
             const equipped    = equippedRaw
                 .map((it, i) => buildItem(it.itemHash, it.itemInstanceId, instances, i))
                 .filter(Boolean);
@@ -153,6 +154,12 @@ router.get('/destiny', requireAuth, async (req, res) => {
             }
 
             const slot = (bHash) => equipped.find(i => i.bucketHash === bHash) || null;
+
+            // Inventaire non-équipé du personnage (armes + armures seulement)
+            const inventory = invRaw
+                .map((it, i) => buildItem(it.itemHash, it.itemInstanceId, instances, i))
+                .filter(i => i && i.power > 0 && (WEAPON_BUCKETS.has(i.bucketHash) || ARMOR_BUCKETS.has(i.bucketHash)))
+                .sort((a, b) => b.power - a.power);
 
             return {
                 id:       cId,
@@ -174,6 +181,7 @@ router.get('/destiny', requireAuth, async (req, res) => {
                     legs:      slot(20886954),
                     classItem: slot(1585787867),
                 },
+                inventory,
             };
         });
 
@@ -385,6 +393,56 @@ router.get('/item-detail/:instanceId', requireAuth, async (req, res) => {
         if (err.response?.status === 401)
             return res.status(401).json({ error: 'Session Bungie expirée.' });
         res.status(500).json({ error: 'Erreur lors de la récupération des détails.' });
+    }
+});
+
+// ── POST /api/me/transfer-item ────────────────────────────────────────────
+router.post('/transfer-item', requireAuth, async (req, res) => {
+    try {
+        const { instanceId, itemHash, transferToVault, characterId } = req.body;
+        if (!instanceId || !itemHash || typeof transferToVault !== 'boolean' || !characterId) {
+            return res.status(400).json({ error: 'Paramètres manquants.' });
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: req.user.userId } });
+        if (!user?.bungieMembershipId)
+            return res.status(401).json({ error: 'Compte Bungie non lié.' });
+
+        const accessToken = await ensureFreshToken(user);
+        const headers = {
+            'X-API-Key':     process.env.BUNGIE_API_KEY,
+            'Authorization': `Bearer ${accessToken}`,
+        };
+
+        const membRes = await axios.get(
+            `https://www.bungie.net/Platform/User/GetMembershipsById/${user.bungieMembershipId}/254/`,
+            { headers }
+        );
+        const { membershipType } = membRes.data.Response.destinyMemberships[0];
+
+        await axios.post(
+            'https://www.bungie.net/Platform/Destiny2/Actions/Items/TransferItem/',
+            {
+                itemReferenceHash: itemHash,
+                stackSize:         1,
+                transferToVault,
+                itemId:            instanceId,
+                characterId,
+                membershipType,
+            },
+            { headers }
+        );
+
+        res.json({ ok: true });
+
+    } catch (err) {
+        const bErr = err.response?.data?.Message || err.response?.data || err.message;
+        console.error('Erreur transfer-item:', bErr);
+        if (err.response?.status === 401)
+            return res.status(401).json({ error: 'Session Bungie expirée.' });
+        // Erreur Bungie lisible (ex: "L'objet est verrouillé")
+        const msg = err.response?.data?.Message || 'Erreur lors du transfert.';
+        res.status(400).json({ error: msg });
     }
 });
 

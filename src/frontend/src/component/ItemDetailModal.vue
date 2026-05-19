@@ -28,6 +28,25 @@
           </div>
         </div>
 
+        <!-- ══ BARRE DE TRANSFERT ══ -->
+        <div class="idm-transfer-bar" v-if="item.instanced && characters.length">
+          <span class="idm-transfer-label">⇄ Transférer vers</span>
+          <button
+            class="idm-transfer-btn vault"
+            @click="doTransfer(true, characters[0].id)"
+            title="Envoyer dans le coffre"
+          >⌂ Coffre</button>
+          <button
+            v-for="char in characters" :key="char.id"
+            class="idm-transfer-btn char"
+            @click="doTransfer(false, char.id)"
+            :title="`${char.class} \u2022 ${char.power} \u2656`"
+          >
+            <span class="idm-transfer-class-icon">{{ classIcon(char.class) }}</span>
+            {{ char.class }}
+          </button>
+        </div>
+
         <!-- ══ SPINNER ══ -->
         <div class="idm-loading" v-if="loading">
           <div class="idm-spinner"></div>
@@ -163,12 +182,26 @@
 import { ref, computed } from 'vue'
 
 const props = defineProps({
-  item:    { type: Object,  required: true },
-  detail:  { type: Object,  default: null  },
-  loading: { type: Boolean, default: false }
+  item:       { type: Object,  required: true },
+  detail:     { type: Object,  default: null  },
+  loading:    { type: Boolean, default: false },
+  characters: { type: Array,   default: () => [] }
 })
 
-defineEmits(['close'])
+const emit = defineEmits(['close', 'transfer'])
+
+/* ── Transfert ── */
+function doTransfer(transferToVault, characterId) {
+  emit('transfer', {
+    instanceId:     props.item.id,
+    itemHash:       props.item.itemHash,
+    transferToVault,
+    characterId,
+  })
+}
+
+const CLASS_ICONS = { 'Titan': '⛕', 'Chasseur': '◳', 'Arcaniste': '☆' }
+function classIcon(cls) { return CLASS_ICONS[cls] ?? '◈' }
 
 /* ── Tooltip ── */
 const tip = ref(null)
@@ -314,6 +347,57 @@ function currentPlug(sock) {
 .idm-power-star { color: var(--rc, #ceae33); font-size: 10px }
 .idm-power-num  { font-family: 'Rajdhani', sans-serif; font-size: 28px; font-weight: 700; color: #f0ece4; line-height: 1 }
 
+/* ══ BARRE DE TRANSFERT ══ */
+.idm-transfer-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-wrap: wrap;
+}
+.idm-transfer-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.28);
+  margin-right: 4px;
+  white-space: nowrap;
+}
+.idm-transfer-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border: 1px solid;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.idm-transfer-btn.vault {
+  color: #c8c5be;
+  border-color: rgba(200, 197, 190, 0.25);
+  background: rgba(200, 197, 190, 0.06);
+}
+.idm-transfer-btn.vault:hover {
+  background: rgba(200, 197, 190, 0.14);
+  color: #fff;
+}
+.idm-transfer-btn.char {
+  color: #7ec8e3;
+  border-color: rgba(126, 200, 227, 0.25);
+  background: rgba(126, 200, 227, 0.06);
+}
+.idm-transfer-btn.char:hover {
+  background: rgba(126, 200, 227, 0.16);
+  color: #fff;
+}
+
 /* ══ SPINNER ══ */
 .idm-loading { display: flex; align-items: center; justify-content: center; padding: 44px }
 .idm-spinner {
@@ -435,7 +519,7 @@ function currentPlug(sock) {
 }
 .idm-intr-desc {
   font-size: 11px; color: rgba(200, 196, 188, 0.45); line-height: 1.5;
-  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
 }
 
 /* ══ GRILLE DE SOCKETS (colonnes de perks) ══ */
