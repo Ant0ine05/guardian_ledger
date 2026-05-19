@@ -5,7 +5,14 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "<rootDir>/../../tests/backend/**/*.test.js"
+    ]
   },
   "keywords": [],
   "author": "",
@@ -23,6 +30,8 @@
     "jsonwebtoken": "^9.0.3"
   },
   "devDependencies": {
-    "prisma": "^7.8.0"
+    "jest": "^29.7.0",
+    "prisma": "^7.8.0",
+    "supertest": "^7.1.0"
   }
 }

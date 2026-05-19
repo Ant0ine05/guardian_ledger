@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  # ── Tests Backend (Jest) ──────────────────────────────────────────────────
+  backend-tests:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: src/backend/package-lock.json
+
+      - name: Installation des dépendances backend
+        working-directory: src/backend
+        run: npm ci
+
+      - name: Lancement des tests backend
+        working-directory: src/backend
+        run: npm test
+
+  # ── Tests Frontend (Vitest) ───────────────────────────────────────────────
+  frontend-tests:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: src/frontend/package-lock.json
+
+      - name: Installation des dépendances frontend
+        working-directory: src/frontend
+        run: npm ci
+
+      - name: Lancement des tests frontend
+        working-directory: src/frontend
+        run: npm test
