@@ -12,7 +12,11 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      // Aliases explicites pour que Vite trouve ces packages depuis tests/frontend/
+      // (Vite remonte depuis le fichier test et ne passe jamais par src/frontend/node_modules/)
+      '@vue/test-utils': fileURLToPath(new URL('./node_modules/@vue/test-utils', import.meta.url)),
+      'vue-router': fileURLToPath(new URL('./node_modules/vue-router', import.meta.url)),
     },
   },
   server: {
