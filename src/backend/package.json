@@ -10,8 +10,8 @@
   },
   "jest": {
     "testEnvironment": "node",
-    "testMatch": [
-      "<rootDir>/../../tests/backend/**/*.test.js"
+    "roots": [
+      "<rootDir>/../../tests/backend"
     ]
   },
   "keywords": [],
