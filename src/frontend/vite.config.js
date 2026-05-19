@@ -15,4 +15,15 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  server: {
+    fs: {
+      // Autorise Vitest à accéder aux fichiers dans tests/ (hors du root src/frontend/)
+      allow: ['../..'],
+    },
+  },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    include: ['../../tests/frontend/**/*.test.js'],
+  },
 })
