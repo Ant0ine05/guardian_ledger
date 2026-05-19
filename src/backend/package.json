@@ -12,6 +12,9 @@
     "testEnvironment": "node",
     "roots": [
       "<rootDir>/../../tests/backend"
+    ],
+    "modulePaths": [
+      "<rootDir>/node_modules"
     ]
   },
   "keywords": [],
