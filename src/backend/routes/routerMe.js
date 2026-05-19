@@ -447,3 +447,6 @@ router.post('/transfer-item', requireAuth, async (req, res) => {
 });
 
 module.exports = router;
+
+// Export des helpers pour les tests unitaires
+module.exports._helpers = { buildItem, dedupe, TIER_MAP, CLASS_MAP, RACE_MAP, BUCKET_LABEL };

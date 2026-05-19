@@ -155,3 +155,42 @@ describe('POST /api/auth/login', () => {
         expect(res.body.displayName).toBe('GuardianXX#1234');
     });
 });
+
+// ─────────────────────────────────────────────────────────────────────────
+describe('GET /api/auth/bungie-connect', () => {
+    beforeEach(() => jest.clearAllMocks());
+
+    it('retourne 400 si le paramètre state est absent', async () => {
+        const res = await request(app).get('/api/auth/bungie-connect');
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe('State manquant.');
+    });
+
+    it('redirige (302) vers l\'URL d\'autorisation Bungie si state est présent', async () => {
+        process.env.CLIENT_ID = 'test-client-42';
+        const res = await request(app)
+            .get('/api/auth/bungie-connect')
+            .query({ state: 'mon-token-temporaire' })
+            .redirects(0);
+        expect(res.status).toBe(302);
+        expect(res.headers.location).toContain('www.bungie.net/en/OAuth/Authorize');
+        expect(res.headers.location).toContain('test-client-42');
+        expect(res.headers.location).toContain(encodeURIComponent('mon-token-temporaire'));
+    });
+});
+
+// ─────────────────────────────────────────────────────────────────────────
+describe('GET /api/auth/callback', () => {
+    const jwt = require('jsonwebtoken');
+
+    beforeEach(() => jest.clearAllMocks());
+
+    it('retourne 400 si le state JWT est invalide ou expiré', async () => {
+        jwt.verify.mockImplementation(() => { throw new Error('jwt expired'); });
+        const res = await request(app)
+            .get('/api/auth/callback')
+            .query({ code: 'bungie-code-123', state: 'token-invalide' });
+        expect(res.status).toBe(400);
+        expect(res.text).toContain('Session expirée');
+    });
+});
