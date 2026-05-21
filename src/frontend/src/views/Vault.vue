@@ -57,6 +57,12 @@
     <div
       class="char-panel"
       :class="{ 'char-panel--dragover': dragOverTarget === 'char-panel' }"
+      :style="selectedChar?.emblemBackgroundPath ? {
+        backgroundImage: `linear-gradient(to bottom, rgba(20,27,65,0.35) 0%, rgba(20,27,65,0.7) 35%, #141B41 70%), url(${selectedChar.emblemBackgroundPath})`,
+        backgroundSize: '100% auto',
+        backgroundPosition: 'center top',
+        backgroundRepeat: 'no-repeat'
+      } : {}"
       @dragover.prevent="dragOverTarget = 'char-panel'"
       @dragleave.self="dragOverTarget = null"
       @drop.prevent="onDropCharPanel"
@@ -132,41 +138,6 @@
               <span class="char-light-star">✦</span>
               <span class="char-light-val">{{ selectedChar.power }}</span>
             </div>
-          </div>
-
-          <!-- ── Logo de classe (centre) ── -->
-          <div class="char-logo-center">
-            <div class="char-logo-wrap">
-              <img v-if="selectedChar.emblemPath" :src="selectedChar.emblemPath" :alt="selectedChar.class" class="char-emblem-img" />
-              <svg v-else-if="selectedChar.class === 'Titan'" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" class="char-class-svg">
-                <polygon points="50,8 92,32 92,68 50,92 8,68 8,32" fill="rgba(48,107,172,0.12)" stroke="rgba(48,107,172,0.6)" stroke-width="2.5"/>
-                <polygon points="50,20 80,37 80,63 50,80 20,63 20,37" fill="rgba(48,107,172,0.08)" stroke="rgba(111,156,235,0.4)" stroke-width="1.5"/>
-                <line x1="50" y1="8" x2="50" y2="92" stroke="rgba(111,156,235,0.45)" stroke-width="1.5"/>
-                <line x1="8" y1="50" x2="92" y2="50" stroke="rgba(111,156,235,0.45)" stroke-width="1.5"/>
-                <circle cx="50" cy="50" r="8" fill="rgba(48,107,172,0.4)" stroke="rgba(111,156,235,0.8)" stroke-width="2"/>
-                <circle cx="50" cy="50" r="3" fill="rgba(111,156,235,0.9)"/>
-              </svg>
-              <svg v-else-if="selectedChar.class === 'Chasseur'" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" class="char-class-svg">
-                <polygon points="50,6 94,50 50,94 6,50" fill="rgba(111,156,235,0.1)" stroke="rgba(111,156,235,0.55)" stroke-width="2.5"/>
-                <polygon points="50,18 82,50 50,82 18,50" fill="rgba(111,156,235,0.07)" stroke="rgba(111,156,235,0.3)" stroke-width="1.5"/>
-                <line x1="26" y1="26" x2="74" y2="74" stroke="rgba(111,156,235,0.5)" stroke-width="1.5"/>
-                <line x1="74" y1="26" x2="26" y2="74" stroke="rgba(111,156,235,0.5)" stroke-width="1.5"/>
-                <circle cx="50" cy="50" r="7" fill="rgba(111,156,235,0.35)" stroke="rgba(152,185,242,0.9)" stroke-width="2"/>
-                <circle cx="50" cy="50" r="2.5" fill="rgba(152,185,242,1)"/>
-              </svg>
-              <svg v-else viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" class="char-class-svg">
-                <polygon points="50,5 95,27.5 95,72.5 50,95 5,72.5 5,27.5" fill="rgba(145,142,244,0.1)" stroke="rgba(145,142,244,0.55)" stroke-width="2.5"/>
-                <path d="M50 22 L72 34 L78 58 L62 76 L38 76 L22 58 L28 34 Z" fill="rgba(145,142,244,0.08)" stroke="rgba(145,142,244,0.35)" stroke-width="1.5"/>
-                <line x1="50" y1="5"  x2="50" y2="95" stroke="rgba(145,142,244,0.4)" stroke-width="1"/>
-                <line x1="5"  y1="27.5" x2="95" y2="72.5" stroke="rgba(145,142,244,0.3)" stroke-width="1"/>
-                <line x1="95" y1="27.5" x2="5"  y2="72.5" stroke="rgba(145,142,244,0.3)" stroke-width="1"/>
-                <circle cx="50" cy="50" r="9" fill="rgba(145,142,244,0.25)" stroke="rgba(145,142,244,0.9)" stroke-width="2"/>
-                <circle cx="50" cy="50" r="4" fill="rgba(145,142,244,0.85)"/>
-                <circle cx="50" cy="50" r="1.5" fill="white" opacity="0.8"/>
-              </svg>
-            </div>
-            <div class="char-info-name">{{ selectedChar.class }}</div>
-            <div class="char-info-sub">{{ selectedChar.race }}<span v-if="selectedChar.subclass"><br>{{ selectedChar.subclass }}</span></div>
           </div>
 
           <!-- ── Colonne Armure ── -->
@@ -817,7 +788,7 @@ async function handleTransfer({ instanceId, itemHash, transferToVault, character
 .char-header-power span { font-size: 13px }
 
 /* Corps équipement */
-.char-equip-body { display: flex; gap: 10px; align-items: flex-start }
+.char-equip-body { display: flex; gap: 16px; align-items: flex-start }
 .char-equip-col  { display: flex; flex-direction: column; gap: 6px }
 .char-col-label  {
   font-family: 'Exo 2', sans-serif; font-size: 10px; font-weight: 600;
@@ -884,29 +855,7 @@ async function handleTransfer({ instanceId, itemHash, transferToVault, character
 .inv-alts-empty { font-size: 11px; color: var(--text-muted); opacity: .5; padding: 12px 0 0 6px }
 
 /* Logo de classe central */
-.char-logo-center {
-  flex: 1; display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 8px; padding: 0 6px;
-}
-.char-logo-wrap {
-  width: 66px; height: 66px;
-  display: flex; align-items: center; justify-content: center;
-}
-.char-emblem-img {
-  width: 66px; height: 66px; object-fit: contain;
-  border-radius: 8px; filter: drop-shadow(0 0 12px rgba(145,142,244,.4));
-}
-.char-class-svg {
-  width: 60px; height: 60px;
-  filter: drop-shadow(0 0 8px rgba(145,142,244,.3));
-}
-.char-info-name {
-  font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 700;
-  letter-spacing: 2px; text-transform: uppercase; color: var(--soft-periwinkle);
-  text-align: center;
-}
-.char-info-sub { font-size: 10px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; text-align: center }
+/* char-logo-center removed */
 
 /* Badge lumière */
 .char-light-badge {
