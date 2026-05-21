@@ -111,6 +111,16 @@ body::after {
 }
 .search-bar::placeholder { color:var(--text-muted) }
 .search-bar:focus { border-color:var(--cornflower) }
+.reload-btn {
+  width:36px; height:36px; border-radius:8px;
+  border:1px solid var(--border); background:rgba(26,34,82,.8);
+  color:var(--text-muted); font-size:18px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:all .2s; flex-shrink:0;
+}
+.reload-btn:hover { color:var(--cornflower); border-color:rgba(111,156,235,.4); background:rgba(111,156,235,.08) }
+.reload-btn.spinning { pointer-events:none; animation:spin .7s linear infinite }
+@keyframes spin { to { transform:rotate(360deg) } }
 
 /* ─── MAIN ─── */
 .main { padding:24px 28px; display:flex; flex-direction:column; gap:24px }

@@ -24,6 +24,9 @@ const BUCKET_LABEL = {
     1585787867: 'Classe',
 };
 
+// ── Cache membership Destiny 2 (évite un appel Bungie par transfert) ────────
+const membershipCache = new Map() // userId → { membershipType, membershipId }
+
 // ── Helper : construit un objet item à partir du hash + instanceId ────────
 function buildItem(itemHash, itemInstanceId, instances, index) {
     const def = getDefinition('DestinyInventoryItemDefinition', String(itemHash));
@@ -121,6 +124,7 @@ router.get('/destiny', requireAuth, async (req, res) => {
             return res.status(404).json({ error: 'Aucun compte Destiny 2 trouvé.' });
 
         const { membershipId, membershipType } = memberships[0];
+        membershipCache.set(req.user.userId, { membershipId, membershipType });
 
         // 2. Profil complet : coffre (102) + personnages + équipement + inventaire + instances
         const profileRes = await axios.get(
@@ -414,11 +418,17 @@ router.post('/transfer-item', requireAuth, async (req, res) => {
             'Authorization': `Bearer ${accessToken}`,
         };
 
-        const membRes = await axios.get(
-            `https://www.bungie.net/Platform/User/GetMembershipsById/${user.bungieMembershipId}/254/`,
-            { headers }
-        );
-        const { membershipType } = membRes.data.Response.destinyMemberships[0];
+        let membership = membershipCache.get(req.user.userId);
+        if (!membership) {
+            const membRes = await axios.get(
+                `https://www.bungie.net/Platform/User/GetMembershipsById/${user.bungieMembershipId}/254/`,
+                { headers }
+            );
+            const m = membRes.data.Response.destinyMemberships[0];
+            membership = { membershipType: m.membershipType, membershipId: m.membershipId };
+            membershipCache.set(req.user.userId, membership);
+        }
+        const { membershipType } = membership;
 
         await axios.post(
             'https://www.bungie.net/Platform/Destiny2/Actions/Items/TransferItem/',
@@ -442,6 +452,52 @@ router.post('/transfer-item', requireAuth, async (req, res) => {
             return res.status(401).json({ error: 'Session Bungie expirée.' });
         // Erreur Bungie lisible (ex: "L'objet est verrouillé")
         const msg = err.response?.data?.Message || 'Erreur lors du transfert.';
+        res.status(400).json({ error: msg });
+    }
+});
+
+// ── POST /api/me/equip-item ───────────────────────────────────────────────
+router.post('/equip-item', requireAuth, async (req, res) => {
+    try {
+        const { instanceId, characterId } = req.body;
+        if (!instanceId || !characterId)
+            return res.status(400).json({ error: 'Paramètres manquants.' });
+
+        const user = await prisma.user.findUnique({ where: { id: req.user.userId } });
+        if (!user?.bungieMembershipId)
+            return res.status(401).json({ error: 'Compte Bungie non lié.' });
+
+        const accessToken = await ensureFreshToken(user);
+        const headers = {
+            'X-API-Key':     process.env.BUNGIE_API_KEY,
+            'Authorization': `Bearer ${accessToken}`,
+        };
+
+        let membership = membershipCache.get(req.user.userId);
+        if (!membership) {
+            const membRes = await axios.get(
+                `https://www.bungie.net/Platform/User/GetMembershipsById/${user.bungieMembershipId}/254/`,
+                { headers }
+            );
+            const m = membRes.data.Response.destinyMemberships[0];
+            membership = { membershipType: m.membershipType, membershipId: m.membershipId };
+            membershipCache.set(req.user.userId, membership);
+        }
+        const { membershipType } = membership;
+
+        await axios.post(
+            'https://www.bungie.net/Platform/Destiny2/Actions/Items/EquipItem/',
+            { itemId: instanceId, characterId, membershipType },
+            { headers }
+        );
+
+        res.json({ ok: true });
+
+    } catch (err) {
+        const msg = err.response?.data?.Message || 'Erreur lors de l\'équipement.';
+        console.error('Erreur equip-item:', msg);
+        if (err.response?.status === 401)
+            return res.status(401).json({ error: 'Session Bungie expirée.' });
         res.status(400).json({ error: msg });
     }
 });
