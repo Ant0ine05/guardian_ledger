@@ -271,3 +271,4 @@ npm run test:watch     # Mode watch (TDD)
 Le pipeline GitHub Actions (`.github/workflows/ci.yml`) exécute les tests backend et frontend **en parallèle** sur `ubuntu-latest` / Node 22 à chaque `push` ou `pull_request` sur `main`.
 
 
+ 
