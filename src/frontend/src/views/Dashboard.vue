@@ -1,4 +1,4 @@
-<template>
+﻿<template>
 <div class="app-root">
 
   <!-- LOADING -->
@@ -184,54 +184,15 @@
 
         </div>
 
-        <!-- Bouton toggle inventaire -->
+        <!-- Bouton Gérer l'équipement -->
         <button
-          class="gc-inv-toggle"
-          @click="toggleInventory(char.id)"
-          v-if="char.inventory?.length"
+          class="gc-manage-btn"
+          @click="router.push({ path: '/vault', query: { charId: char.id } })"
         >
-          <span>{{ openInventory[char.id] ? '▴' : '▾' }}</span>
-          {{ openInventory[char.id] ? 'Masquer' : 'Voir' }} l’inventaire
-          <span class="gc-inv-count">{{ char.inventory.length }}</span>
+          <span class="gc-manage-icon">⊞</span>
+          Gérer l'équipement
+          <span class="gc-manage-arrow">→</span>
         </button>
-
-        <!-- Inventaire non-équipé -->
-        <div class="gc-inventory" v-if="openInventory[char.id] && char.inventory?.length">
-          <div class="gc-inv-section" v-if="char.inventory.some(i => [1498876634,2465295065,953998645].includes(i.bucketHash))">
-            <div class="gc-inv-label">Armes</div>
-            <div class="gc-inv-grid">
-              <div
-                v-for="item in char.inventory.filter(i => [1498876634,2465295065,953998645].includes(i.bucketHash))"
-                :key="item.id"
-                class="gc-inv-item"
-                :class="item.rarity"
-                :title="item.name"
-              >
-                <img v-if="item.icon" :src="item.icon" :alt="item.name" class="gc-inv-img" />
-                <span v-else class="gc-inv-ph">?</span>
-                <div class="gc-inv-power">{{ item.power }}</div>
-                <div class="gc-inv-bar"></div>
-              </div>
-            </div>
-          </div>
-          <div class="gc-inv-section" v-if="char.inventory.some(i => [3448274439,3551918588,14239492,20886954,1585787867].includes(i.bucketHash))">
-            <div class="gc-inv-label">Armure</div>
-            <div class="gc-inv-grid">
-              <div
-                v-for="item in char.inventory.filter(i => [3448274439,3551918588,14239492,20886954,1585787867].includes(i.bucketHash))"
-                :key="item.id"
-                class="gc-inv-item"
-                :class="item.rarity"
-                :title="item.name"
-              >
-                <img v-if="item.icon" :src="item.icon" :alt="item.name" class="gc-inv-img" />
-                <span v-else class="gc-inv-ph">?</span>
-                <div class="gc-inv-power">{{ item.power }}</div>
-                <div class="gc-inv-bar"></div>
-              </div>
-            </div>
-          </div>
-        </div>
 
       </div>
     </div>
@@ -254,12 +215,6 @@ import { useRoute, useRouter } from 'vue-router'
 const route  = useRoute()
 const router = useRouter()
 const API    = import.meta.env.VITE_API_URL || 'http://localhost:3000'
-
-// Inventaire ouvert par personnage
-const openInventory = ref({})
-function toggleInventory(charId) {
-  openInventory.value[charId] = !openInventory.value[charId]
-}
 
 // Auth
 const displayName  = ref('')
@@ -505,77 +460,39 @@ const showToast = (msg) => {
   filter: drop-shadow(0 0 16px rgba(111,156,235,.7));
 }
 
-/* ─── Inventaire non-équipé ─────────────────────────── */
-.gc-inv-toggle {
-  display: flex; align-items: center; gap: 6px;
-  width: 100%; margin: 10px 0 0;
-  padding: 7px 12px;
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(255,255,255,.1);
+/* ─── Bouton gérer équipement ─── */
+.gc-manage-btn {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; margin-top: 12px;
+  padding: 8px 14px;
+  background: rgba(145,142,244,.08);
+  border: 1px solid rgba(145,142,244,.2);
   border-radius: 8px;
-  color: var(--text-muted);
+  color: var(--soft-periwinkle);
   font-family: 'Exo 2', sans-serif;
-  font-size: 12px; font-weight: 500;
+  font-size: 12px; font-weight: 600;
+  letter-spacing: .5px;
   cursor: pointer;
-  transition: background .15s, border-color .15s;
+  transition: background .15s, border-color .15s, color .15s;
 }
-.gc-inv-toggle:hover {
-  background: rgba(255,255,255,.08);
-  border-color: rgba(255,255,255,.22);
+.gc-manage-btn:hover {
+  background: rgba(145,142,244,.18);
+  border-color: rgba(145,142,244,.45);
   color: #fff;
 }
-.gc-inv-count {
-  margin-left: auto;
-  background: rgba(77,155,206,.25);
-  border: 1px solid rgba(77,155,206,.4);
-  border-radius: 10px;
-  padding: 1px 7px;
-  font-size: 11px; font-weight: 700;
-  color: #6db4df;
-  font-family: 'Rajdhani', sans-serif;
+.guardian-card[data-char-class="Titan"] .gc-manage-btn {
+  background: rgba(48,107,172,.08); border-color: rgba(48,107,172,.22); color: #6db4e8;
 }
-.gc-inventory {
-  padding: 10px 0 2px;
-  display: flex; flex-direction: column; gap: 12px;
+.guardian-card[data-char-class="Titan"] .gc-manage-btn:hover {
+  background: rgba(48,107,172,.18); border-color: rgba(48,107,172,.45);
 }
-.gc-inv-section {}
-.gc-inv-label {
-  font-family: 'Exo 2', sans-serif;
-  font-size: 10px; font-weight: 600;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 6px;
+.guardian-card[data-char-class="Chasseur"] .gc-manage-btn {
+  background: rgba(111,156,235,.08); border-color: rgba(111,156,235,.22); color: var(--cornflower);
 }
-.gc-inv-grid {
-  display: flex; flex-wrap: wrap; gap: 5px;
+.guardian-card[data-char-class="Chasseur"] .gc-manage-btn:hover {
+  background: rgba(111,156,235,.18); border-color: rgba(111,156,235,.45);
 }
-.gc-inv-item {
-  position: relative;
-  width: 44px; height: 44px;
-  border-radius: 6px;
-  border: 1.5px solid rgba(255,255,255,.15);
-  background: var(--space-indigo);
-  overflow: hidden;
-  display: flex; align-items: center; justify-content: center;
-  cursor: default;
-}
-.gc-inv-item.exotic    { border-color: rgba(244,196,65,.55);  background: linear-gradient(135deg,rgba(244,196,65,.12),var(--space-indigo)) }
-.gc-inv-item.legendary { border-color: rgba(145,102,197,.5);  background: linear-gradient(135deg,rgba(145,102,197,.1),var(--space-indigo)) }
-.gc-inv-item.rare      { border-color: rgba(48,107,172,.45) }
-.gc-inv-img  { width: 44px; height: 44px; object-fit: contain; display: block }
-.gc-inv-ph   { font-size: 18px; color: var(--text-muted) }
-.gc-inv-power {
-  position: absolute; bottom: 1px; right: 3px;
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 10px; font-weight: 700;
-  color: #f4c441; line-height: 1;
-}
-.gc-inv-bar {
-  position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
-}
-.gc-inv-item.exotic    .gc-inv-bar { background: #f4c441 }
-.gc-inv-item.legendary .gc-inv-bar { background: #9166c5 }
-.gc-inv-item.rare      .gc-inv-bar { background: var(--ocean-deep) }
-.gc-inv-item.common    .gc-inv-bar { background: #4a7c59 }
+.gc-manage-icon { font-size: 13px }
+.gc-manage-arrow { margin-left: auto; opacity: .6; transition: transform .15s }
+.gc-manage-btn:hover .gc-manage-arrow { transform: translateX(3px); opacity: 1 }
 </style>
