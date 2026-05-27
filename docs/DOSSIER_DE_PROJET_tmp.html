@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>DOSSIER_DE_PROJET.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> or <div class="page"></div> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="dossier-de-projet">Dossier de Projet</h1>
+<hr>
+<h1 id="guardian-ledger">Guardian Ledger</h1>
+<h3 id="application-full-stack-de-gestion-dinventaire-destiny-2">Application Full-Stack de gestion d'inventaire Destiny 2</h3>
+<p><strong>Projet personnel — Formation Concepteur Développeur d'Applications</strong></p>
+<p><strong>[Votre Prénom NOM]</strong></p>
+<hr>
+<h2 id="remerciements">Remerciements</h2>
+<blockquote>
+<p><em>(Section à compléter avec vos remerciements personnels)</em></p>
+</blockquote>
+<hr>
+<h2 id="table-des-matières">TABLE DES MATIÈRES</h2>
+<ul>
+<li><a href="#i-introduction">I. Introduction</a></li>
+<li><a href="#ii-pr%C3%A9sentation-du-contexte-et-de-lenvironnement-technique">II. Présentation du contexte et de l'environnement technique</a></li>
+<li><a href="#iii-liste-des-comp%C3%A9tences-du-r%C3%A9f%C3%A9rentiel-couvertes-par-le-projet">III. Liste des compétences du référentiel couvertes par le projet</a></li>
+<li><a href="#iv-r%C3%A9sum%C3%A9-du-projet-guardian-ledger">IV. Résumé du projet Guardian Ledger</a>
+<ul>
+<li><a href="#contexte-et-gen%C3%A8se-du-projet">Contexte et genèse du projet</a></li>
+<li><a href="#objectifs-du-produit">Objectifs du produit</a></li>
+<li><a href="#fonctionnalit%C3%A9s-cl%C3%A9s">Fonctionnalités clés</a></li>
+</ul>
+</li>
+<li><a href="#v-gestion-de-projet">V. Gestion de projet</a></li>
+<li><a href="#vi-sp%C3%A9cifications-fonctionnelles-du-projet">VI. Spécifications fonctionnelles du projet</a>
+<ul>
+<li><a href="#contraintes-et-livrables-attendus">Contraintes et livrables attendus</a></li>
+<li><a href="#diagramme-des-cas-dutilisation">Diagramme des cas d'utilisation</a></li>
+<li><a href="#mod%C3%A8le-de-donn%C3%A9es-prisma--sqlite">Modèle de données (Prisma / SQLite)</a></li>
+<li><a href="#diagramme-de-s%C3%A9quences">Diagramme de séquences</a></li>
+<li><a href="#sch%C3%A9ma-darchitecture">Schéma d'architecture</a></li>
+</ul>
+</li>
+<li><a href="#vii-r%C3%A9alisation-personnelle--authentification-oauth-20-bungie">VII. Réalisation personnelle — Authentification OAuth 2.0 Bungie</a></li>
+<li><a href="#viii-tests">VIII. Tests</a></li>
+<li><a href="#ix-veille-sur-les-vuln%C3%A9rabilit%C3%A9s-de-s%C3%A9curit%C3%A9-du-projet">IX. Veille sur les vulnérabilités de sécurité du projet</a></li>
+<li><a href="#x-description-dune-situation-de-travail-ayant-n%C3%A9cessit%C3%A9-une-recherche">X. Description d'une situation de travail ayant nécessité une recherche</a></li>
+<li><a href="#xi-bilan-et-perspectives-du-projet">XI. Bilan et perspectives du projet</a></li>
+<li><a href="#xii-conclusion">XII. Conclusion</a></li>
+</ul>
+<hr>
+<h2 id="i-introduction">I. Introduction</h2>
+<blockquote>
+<p><em>(Section à compléter avec votre parcours personnel : formation, motivations, contexte de création du projet)</em></p>
+</blockquote>
+<p>Guardian Ledger est né d'une double passion : le développement web et le jeu vidéo Destiny 2. L'objectif était de créer, dans le cadre de ma formation de Concepteur Développeur d'Applications, une application full-stack complète permettant aux joueurs de Destiny 2 de consulter et gérer leur inventaire en-dehors du jeu, via l'API officielle de Bungie.net.</p>
+<p>Ce projet est entièrement personnel. Il m'a permis de mettre en pratique l'ensemble des compétences acquises durant ma formation, en situation réelle de développement : conception, authentification OAuth 2.0, intégration d'API tierces, gestion de bases de données, tests automatisés et mise en conteneur Docker.</p>
+<hr>
+<h2 id="ii-présentation-du-contexte-et-de-lenvironnement-technique">II. Présentation du contexte et de l'environnement technique</h2>
+<h3 id="le-projet">Le projet</h3>
+<p>Guardian Ledger est une application web full-stack développée en autonomie complète. Elle s'adresse aux joueurs du jeu vidéo Destiny 2 (studio Bungie) qui souhaitent consulter l'état de leur inventaire, accéder aux détails de leurs équipements et gérer leurs personnages depuis un navigateur web, sans avoir à lancer le jeu.</p>
+<h3 id="environnement-de-développement">Environnement de développement</h3>
+<p>L'ensemble du projet a été développé avec <strong>Visual Studio Code</strong> sous Windows. Le versionning est assuré par <strong>Git</strong> avec un dépôt hébergé sur <strong>GitHub</strong>.</p>
+<h3 id="stack-technique">Stack technique</h3>
+<table>
+<thead>
+<tr>
+<th>Couche</th>
+<th>Technologie</th>
+<th>Version</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Frontend</td>
+<td>Vue.js 3 + Vue Router + Vite</td>
+<td>Vue 3.5 / Vite 7</td>
+</tr>
+<tr>
+<td>Backend</td>
+<td>Node.js + Express 5</td>
+<td>Node 20+</td>
+</tr>
+<tr>
+<td>BDD Manifeste</td>
+<td>SQLite via <code>better-sqlite3</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td>BDD Joueurs</td>
+<td>SQLite via <strong>Prisma ORM</strong></td>
+<td>Prisma 7</td>
+</tr>
+<tr>
+<td>Auth applicative</td>
+<td>JSON Web Token (JWT) + bcryptjs</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Auth tierce</td>
+<td>OAuth 2.0 (Bungie API)</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Client HTTP</td>
+<td>Axios</td>
+<td>1.x</td>
+</tr>
+<tr>
+<td>Conteneurisation</td>
+<td>Docker + Docker Compose</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Tests Backend</td>
+<td>Jest 29 + Supertest 7</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Tests Frontend</td>
+<td>Vitest 3 + @vue/test-utils 2</td>
+<td>—</td>
+</tr>
+<tr>
+<td>CI/CD</td>
+<td>GitHub Actions</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="iii-liste-des-compétences-du-référentiel-couvertes-par-le-projet">III. Liste des compétences du référentiel couvertes par le projet</h2>
+<p>Le projet <strong>Guardian Ledger</strong> m'a permis de mettre en pratique les compétences suivantes pour l'accession au titre de Concepteur Développeur d'Applications :</p>
+<ul>
+<li><strong>C1</strong> — Installer et configurer son environnement de travail en fonction du projet</li>
+<li><strong>C2</strong> — Développer des interfaces utilisateur (Vue.js 3, Vue Router, composants)</li>
+<li><strong>C3</strong> — Développer des composants métier (services backend, middleware, routes Express)</li>
+<li><strong>C4</strong> — Contribuer à la gestion d'un projet informatique (Git, GitHub, planning)</li>
+<li><strong>C5</strong> — Analyser les besoins et maquetter une application</li>
+<li><strong>C6</strong> — Définir l'architecture logicielle d'une application (architecture REST, séparation frontend/backend)</li>
+<li><strong>C7</strong> — Concevoir et mettre en place une base de données relationnelle (Prisma ORM, SQLite)</li>
+<li><strong>C8</strong> — Développer des composants d'accès aux données SQL (Prisma Client, <code>better-sqlite3</code>)</li>
+<li><strong>C9</strong> — Préparer et exécuter les plans de tests d'une application (66 tests automatisés)</li>
+<li><strong>C10</strong> — Préparer et documenter le déploiement d'une application (Docker, Docker Compose)</li>
+<li><strong>C11</strong> — Contribuer à la mise en production dans une démarche DevOps (GitHub Actions CI)</li>
+</ul>
+<hr>
+<h2 id="iv-résumé-du-projet-guardian-ledger">IV. Résumé du projet Guardian Ledger</h2>
+<h3 id="contexte-et-genèse-du-projet">Contexte et genèse du projet</h3>
+<p>Destiny 2 est un jeu de tir à la première personne développé par <strong>Bungie</strong>, dont la particularité est de posséder un système d'inventaire très riche : armes, armures, objets de classe, mods, matériaux… Chaque joueur possède jusqu'à 3 personnages (Titan, Chasseur, Arcaniste), chacun avec son propre équipement, et un coffre partagé pouvant contenir des centaines d'objets.</p>
+<p>Bungie met à disposition une <strong>API REST publique</strong> (<code>https://www.bungie.net/Platform</code>) permettant d'accéder, via OAuth 2.0, aux données d'un joueur authentifié. Cette API expose notamment :</p>
+<ul>
+<li>Le profil du joueur (<code>/Destiny2/[membershipType]/Profile/[membershipId]/</code>)</li>
+<li>L'inventaire de chaque personnage et du coffre</li>
+<li>Les définitions d'objets via le <strong>Manifeste Destiny 2</strong> (base de données SQLite téléchargeable)</li>
+</ul>
+<p><strong>Le problème :</strong> l'interface officielle de Bungie (DIM, Destiny Item Manager) est complexe et lourde. Il n'existe pas d'outil minimaliste permettant de visualiser son inventaire de façon claire et rapide.</p>
+<p><strong>La solution Guardian Ledger :</strong> une application légère, claire, centrée sur l'essentiel.</p>
+<h3 id="objectifs-du-produit">Objectifs du produit</h3>
+<ol>
+<li>Permettre à un joueur de <strong>créer un compte</strong> Guardian Ledger (email + mot de passe)</li>
+<li><strong>Lier son compte Bungie</strong> via le protocole OAuth 2.0</li>
+<li>Consulter son <strong>Dashboard</strong> : personnages actifs avec leur niveau de puissance</li>
+<li>Consulter son <strong>Coffre</strong> (Vault) : liste complète des objets avec filtrage par type (armes / armures) et par rareté</li>
+</ol>
+<h3 id="fonctionnalités-clés">Fonctionnalités clés</h3>
+<h4 id="authentification-double-couche">Authentification double-couche</h4>
+<p>L'application met en œuvre une authentification à deux niveaux :</p>
+<ol>
+<li><strong>Compte applicatif</strong> (email + mot de passe hashé avec bcryptjs, JWT émis par l'API)</li>
+<li><strong>Liaison Bungie</strong> via OAuth 2.0 : l'utilisateur autorise Guardian Ledger à accéder à ses données Destiny 2. Un <code>access_token</code> et un <code>refresh_token</code> sont stockés en base, avec renouvellement automatique avant expiration.</li>
+</ol>
+<h4 id="dashboard">Dashboard</h4>
+<p>Affichage des personnages du joueur :</p>
+<ul>
+<li>Nom du personnage (race + classe)</li>
+<li>Niveau de puissance (Power Level)</li>
+<li>Icône de classe</li>
+</ul>
+<h4 id="coffre-vault">Coffre (Vault)</h4>
+<p>Liste paginée des objets du coffre :</p>
+<ul>
+<li>Icône, nom, type d'emplacement (Cinétique, Énergie, Puissance, Casque, Torse…)</li>
+<li>Niveau de puissance de l'objet</li>
+<li>Rareté colorée (Exotique, Légendaire, Rare…)</li>
+<li>Filtres : Armes / Armures / Tout</li>
+</ul>
+<h4 id="résolution-des-définitions-via-le-manifeste-local">Résolution des définitions via le Manifeste local</h4>
+<p>Les objets Bungie sont identifiés par des <strong>hash numériques</strong> (ex. <code>1087279994</code>). Guardian Ledger embarque le Manifeste Destiny 2 (base SQLite locale, ~300 Mo) et interroge la table <code>DestinyInventoryItemDefinition</code> pour résoudre chaque hash en nom, icône et métadonnées d'affichage.</p>
+<hr>
+<h2 id="v-gestion-de-projet">V. Gestion de projet</h2>
+<p>Le projet Guardian Ledger a été développé en autonomie complète, sans date de livraison contractuelle. La gestion du projet s'est appuyée sur les pratiques suivantes :</p>
+<h3 id="versioning-avec-git">Versioning avec Git</h3>
+<p>Utilisation quotidienne de <strong>Git</strong> pour sauvegarder le travail et structurer le développement en commits atomiques. Le dépôt est hébergé sur <strong>GitHub</strong> à l'adresse :
+<code>https://github.com/Ant0ine05/guardian_ledger</code></p>
+<h3 id="découpage-des-migrations-de-base-de-données">Découpage des migrations de base de données</h3>
+<p>Les évolutions du schéma de la base de données ont été tracées via les <strong>migrations Prisma</strong>, conservées dans le répertoire <code>prisma/migrations/</code> :</p>
+<table>
+<thead>
+<tr>
+<th>Migration</th>
+<th>Date</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>20260423103917_init_users</code></td>
+<td>23/04/2026</td>
+<td>Création de la table <code>User</code> (email, mot de passe)</td>
+</tr>
+<tr>
+<td><code>20260424115345_add_email_auth</code></td>
+<td>24/04/2026</td>
+<td>Ajout du champ <code>email</code> pour l'auth applicative</td>
+</tr>
+<tr>
+<td><code>20260425234000_add_bungie_refresh_token</code></td>
+<td>25/04/2026</td>
+<td>Ajout du <code>refreshToken</code>, <code>accessToken</code> et date d'expiration Bungie</td>
+</tr>
+</tbody>
+</table>
+<h3 id="organisation-des-routes-api">Organisation des routes API</h3>
+<p>Le backend est structuré en 3 groupes de routes distincts :</p>
+<table>
+<thead>
+<tr>
+<th>Préfixe</th>
+<th>Fichier</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/api/auth</code></td>
+<td><code>routerAuth.js</code></td>
+<td>Inscription, connexion, callback OAuth Bungie</td>
+</tr>
+<tr>
+<td><code>/api/data</code></td>
+<td><code>routerData.js</code></td>
+<td>Données publiques (manifeste…)</td>
+</tr>
+<tr>
+<td><code>/api/me</code></td>
+<td><code>routerMe.js</code></td>
+<td>Données du joueur connecté (dashboard, vault)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="intégration-continue-ci">Intégration continue (CI)</h3>
+<p>Un pipeline <strong>GitHub Actions</strong> (<code>ci.yml</code>) est déclenché à chaque <code>push</code> / <code>pull_request</code> sur <code>main</code> pour exécuter l'ensemble des tests backend (Jest) et frontend (Vitest) automatiquement.</p>
+<hr>
+<h2 id="vi-spécifications-fonctionnelles-du-projet">VI. Spécifications fonctionnelles du projet</h2>
+<h3 id="contraintes-et-livrables-attendus">Contraintes et livrables attendus</h3>
+<p>Le principal défi du projet est l'intégration avec l'<strong>API Bungie</strong>, qui impose :</p>
+<ul>
+<li>Une application déclarée sur le portail développeur Bungie (<code>https://www.bungie.net/en/Application</code>)</li>
+<li>La gestion complète du flux <strong>OAuth 2.0 Authorization Code</strong> (redirect, callback, échange de code contre tokens)</li>
+<li>Le <strong>renouvellement silencieux</strong> du <code>access_token</code> via le <code>refresh_token</code> avant chaque appel API sensible</li>
+<li>L'interprétation des <strong>hash d'objets</strong> via le Manifeste local SQLite (conversion en entier 32-bit signé)</li>
+</ul>
+<p>Les livrables du projet sont :</p>
+<ul>
+<li>Le code source versionné sur GitHub</li>
+<li>Une suite de <strong>66 tests automatisés</strong> (backend + frontend)</li>
+<li>Des <strong>Dockerfiles</strong> pour le frontend et le backend, avec un <code>docker-compose.yml</code></li>
+<li>La présente documentation</li>
+</ul>
+<h3 id="diagramme-des-cas-dutilisation">Diagramme des cas d'utilisation</h3>
+<p>Les acteurs du système sont :</p>
+<ul>
+<li><strong>Visiteur</strong> : utilisateur non authentifié</li>
+<li><strong>Joueur connecté</strong> : utilisateur avec un compte Guardian Ledger et un compte Bungie lié</li>
+</ul>
+<pre class="hljs"><code><div>┌─────────────────────────────────────────────────────┐
+│                  SYSTÈME GUARDIAN LEDGER             │
+│                                                     │
+│  Visiteur ──── S'inscrire (email + mot de passe)    │
+│           └─── Se connecter                         │
+│                                                     │
+│  Joueur ──────  Lier son compte Bungie (OAuth 2.0)  │
+│  connecté ───── Consulter son Dashboard             │
+│           ├─── Voir ses personnages + power level   │
+│           └─── Consulter son Coffre (Vault)         │
+│                ├── Filtrer par type (Armes/Armures) │
+│                └── Voir le détail d'un objet        │
+└─────────────────────────────────────────────────────┘
+</div></code></pre>
+<h3 id="modèle-de-données-prisma--sqlite">Modèle de données (Prisma / SQLite)</h3>
+<h4 id="base-de-données-joueurs-prismadb">Base de données joueurs (<code>prisma.db</code>)</h4>
+<p>Le modèle de données est géré par <strong>Prisma ORM</strong> avec SQLite. La table centrale est <code>User</code> :</p>
+<pre class="hljs"><code><div>┌─────────────────────────────────────────┐
+│                  User                   │
+├─────────────────────────────────────────┤
+│ id                  Int   (PK, auto)    │
+│ email               String (UNIQUE)     │
+│ password            String (bcrypt)     │
+│ bungieMembershipId  String? (UNIQUE)    │
+│ bungieAccessToken   String?             │
+│ bungieRefreshToken  String?             │
+│ bungieTokenExpiresAt DateTime?          │
+│ displayName         String?             │
+│ createdAt           DateTime            │
+│ updatedAt           DateTime            │
+└─────────────────────────────────────────┘
+</div></code></pre>
+<p>Un utilisateur peut ne pas avoir encore lié son compte Bungie (<code>bungieMembershipId = null</code>). Dans ce cas, un <code>tempToken</code> JWT (durée de vie 10 minutes) est émis pour permettre la liaison différée.</p>
+<h4 id="base-de-données-manifeste-manifestdb">Base de données manifeste (<code>manifest.db</code>)</h4>
+<p>La base SQLite du <strong>Manifeste Destiny 2</strong> est téléchargée depuis l'API Bungie et stockée localement dans <code>src/backend/data/</code>. Elle contient notamment la table :</p>
+<ul>
+<li><code>DestinyInventoryItemDefinition</code> : définitions de tous les objets du jeu (armes, armures, consommables…)</li>
+</ul>
+<p>Chaque ligne contient une colonne <code>id</code> (hash 32-bit signé) et une colonne <code>json</code> avec les métadonnées complètes de l'objet.</p>
+<h3 id="diagramme-de-séquences">Diagramme de séquences</h3>
+<h4 id="flux-complet--connexion-et-consultation-du-coffre">Flux complet : Connexion et consultation du Coffre</h4>
+<pre class="hljs"><code><div>Joueur          Frontend (Vue)       Backend (Express)      API Bungie
+  │                   │                     │                    │
+  │── POST /login ───&gt;│                     │                    │
+  │                   │── POST /api/auth/login ──────────────────&gt;│
+  │                   │                     │── vérif JWT ──────&gt;│
+  │                   │&lt;── { appToken } ────│                    │
+  │                   │── stockage localStorage ─────────────────│
+  │                   │                     │                    │
+  │── GET /vault ────&gt;│                     │                    │
+  │                   │── GET /api/me/vault ─────────────────────&gt;│
+  │                   │      (Authorization: Bearer appToken)     │
+  │                   │                     │── ensureFreshToken()│
+  │                   │                     │── GET /Destiny2/... ─&gt;│
+  │                   │                     │&lt;── items (hashes)  │
+  │                   │                     │── getDefinition()  │
+  │                   │                     │   (manifest.db)    │
+  │                   │&lt;── { items[] } ─────│                    │
+  │&lt;── Affichage ─────│                     │                    │
+</div></code></pre>
+<h3 id="schéma-darchitecture">Schéma d'architecture</h3>
+<p>Guardian Ledger suit une architecture <strong>REST découplée</strong> :</p>
+<pre class="hljs"><code><div>┌───────────────────────────────────────────────────────────────────┐
+│  FRONTEND  (Vue.js 3 — port 5173)                                 │
+│  ┌──────────┐  ┌──────────────┐  ┌───────────┐  ┌───────────┐   │
+│  │LoginView │  │ Dashboard.vue│  │ Vault.vue │  │ Router    │   │
+│  └────┬─────┘  └──────┬───────┘  └─────┬─────┘  │(Vue Router│   │
+│       │               │                │         │+ guards)  │   │
+│       └───────────────┴────────────────┘         └───────────┘   │
+│                         │ Axios (HTTP)                            │
+└─────────────────────────┼─────────────────────────────────────────┘
+                          │ REST API
+┌─────────────────────────┼─────────────────────────────────────────┐
+│  BACKEND  (Express 5 — port 3000)                                 │
+│  ┌─────────────┐  ┌────────────┐  ┌──────────────┐               │
+│  │ routerAuth  │  │ routerMe   │  │ routerData   │               │
+│  └──────┬──────┘  └─────┬──────┘  └──────┬───────┘               │
+│         │               │                │                       │
+│  ┌──────┴───────────────┴────────────────┘                       │
+│  │           middleware requireAuth (JWT)                        │
+│  ├──────────────────────────────────────────────────────────┐    │
+│  │  Prisma ORM                    manifestService            │    │
+│  │  (prisma.db — Users)           (manifest.db — Items)     │    │
+│  └──────────────────────────────────────────────────────────┘    │
+└───────────────────────────────────────────────────────────────────┘
+                          │ HTTPS
+┌─────────────────────────┼─────────────────────────────────────────┐
+│  API BUNGIE              │  https://www.bungie.net/Platform        │
+│  ┌──────────────────┐   │  ┌───────────────────────────────────┐  │
+│  │ OAuth 2.0        │&lt;──┘  │ /Destiny2/.../Profile/            │  │
+│  │ (access_token)   │      │ /Destiny2/.../Vault/              │  │
+│  └──────────────────┘      └───────────────────────────────────┘  │
+└───────────────────────────────────────────────────────────────────┘
+</div></code></pre>
+<hr>
+<h2 id="vii-réalisation-personnelle--authentification-oauth-20-bungie">VII. Réalisation personnelle — Authentification OAuth 2.0 Bungie</h2>
+<h3 id="présentation-de-la-fonctionnalité">Présentation de la fonctionnalité</h3>
+<p>Je vais présenter le flux d'authentification OAuth 2.0 que j'ai implémenté pour lier le compte Guardian Ledger d'un joueur à son compte Bungie.net. C'est la fonctionnalité la plus complexe du projet, car elle implique plusieurs échanges sécurisés entre le frontend, le backend et les serveurs Bungie.</p>
+<h3 id="problématique">Problématique</h3>
+<p>L'API Bungie exige que chaque accès aux données personnelles d'un joueur soit précédé d'une <strong>autorisation OAuth 2.0</strong> de sa part. Ce n'est pas une simple clé API : il faut que l'utilisateur clique sur &quot;Autoriser&quot; sur le site Bungie.net, puis que l'application récupère un <code>code</code> d'autorisation éphémère et l'échange contre un <code>access_token</code> et un <code>refresh_token</code>.</p>
+<h3 id="flux-oauth-20-implémenté">Flux OAuth 2.0 implémenté</h3>
+<p><strong>Étape 1 — Redirection vers Bungie</strong></p>
+<p>Lorsqu'un utilisateur s'inscrit ou se connecte sans compte Bungie lié, le backend renvoie un <code>tempToken</code> JWT (valide 10 minutes). Le frontend redirige alors l'utilisateur vers :</p>
+<pre class="hljs"><code><div>https://www.bungie.net/en/OAuth/Authorize?client_id=CLIENT_ID&amp;response_type=code&amp;state=tempToken
+</div></code></pre>
+<p>Le <code>state</code> contient le <code>tempToken</code>, ce qui permet de retrouver l'utilisateur lors du callback.</p>
+<p><strong>Étape 2 — Callback</strong></p>
+<p>Bungie redirige l'utilisateur vers <code>GET /api/auth/bungie/callback?code=XXX&amp;state=tempToken</code>. Le backend :</p>
+<ol>
+<li>Vérifie et décode le <code>tempToken</code> pour récupérer le <code>userId</code></li>
+<li>Échange le <code>code</code> contre des tokens via <code>POST https://www.bungie.net/platform/app/oauth/token/</code></li>
+<li>Récupère le <code>bungieMembershipId</code> et le <code>displayName</code> du joueur</li>
+<li>Stocke les tokens en base via Prisma</li>
+<li>Émet le JWT final (<code>appToken</code>) et redirige vers le frontend</li>
+</ol>
+<p><strong>Étape 3 — Renouvellement silencieux</strong></p>
+<p>À chaque appel aux routes <code>/api/me/*</code>, la fonction <code>ensureFreshToken()</code> vérifie si le <code>access_token</code> expire dans moins de 5 minutes. Si c'est le cas, elle effectue un appel de renouvellement transparent vers Bungie et met à jour la base de données, sans que l'utilisateur en soit conscient.</p>
+<pre class="hljs"><code><div><span class="hljs-comment">// Extrait de routerMe.js — renouvellement automatique du token Bungie</span>
+<span class="hljs-keyword">async</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">ensureFreshToken</span>(<span class="hljs-params">user</span>) {
+    <span class="hljs-keyword">const</span> now = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>();
+    <span class="hljs-keyword">const</span> expiresAt = user.<span class="hljs-property">bungieTokenExpiresAt</span>
+        ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>(user.<span class="hljs-property">bungieTokenExpiresAt</span>)
+        : <span class="hljs-literal">null</span>;
+
+    <span class="hljs-comment">// Token encore valide : on le retourne directement</span>
+    <span class="hljs-keyword">if</span> (expiresAt &amp;&amp; now &lt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>(expiresAt.<span class="hljs-title function_">getTime</span>() - <span class="hljs-number">5</span> * <span class="hljs-number">60</span> * <span class="hljs-number">1000</span>)) {
+        <span class="hljs-keyword">return</span> user.<span class="hljs-property">bungieAccessToken</span>;
+    }
+
+    <span class="hljs-comment">// Renouvellement via refresh_token</span>
+    <span class="hljs-keyword">const</span> params = <span class="hljs-keyword">new</span> <span class="hljs-title class_">URLSearchParams</span>({
+        <span class="hljs-attr">grant_type</span>:    <span class="hljs-string">&#x27;refresh_token&#x27;</span>,
+        <span class="hljs-attr">refresh_token</span>: user.<span class="hljs-property">bungieRefreshToken</span>,
+        <span class="hljs-attr">client_id</span>:     process.<span class="hljs-property">env</span>.<span class="hljs-property">CLIENT_ID</span>,
+        <span class="hljs-attr">client_secret</span>: process.<span class="hljs-property">env</span>.<span class="hljs-property">CLIENT_SECRET</span>,
+    });
+
+    <span class="hljs-keyword">const</span> tokenRes = <span class="hljs-keyword">await</span> axios.<span class="hljs-title function_">post</span>(
+        <span class="hljs-string">&#x27;https://www.bungie.net/platform/app/oauth/token/&#x27;</span>,
+        params,
+        { <span class="hljs-attr">headers</span>: { <span class="hljs-string">&#x27;Content-Type&#x27;</span>: <span class="hljs-string">&#x27;application/x-www-form-urlencoded&#x27;</span>,
+                     <span class="hljs-string">&#x27;X-API-Key&#x27;</span>: process.<span class="hljs-property">env</span>.<span class="hljs-property">BUNGIE_API_KEY</span> } }
+    );
+
+    <span class="hljs-comment">// Mise à jour en base de données</span>
+    <span class="hljs-keyword">await</span> prisma.<span class="hljs-property">user</span>.<span class="hljs-title function_">update</span>({
+        <span class="hljs-attr">where</span>: { <span class="hljs-attr">id</span>: user.<span class="hljs-property">id</span> },
+        <span class="hljs-attr">data</span>: {
+            <span class="hljs-attr">bungieAccessToken</span>:    tokenRes.<span class="hljs-property">data</span>.<span class="hljs-property">access_token</span>,
+            <span class="hljs-attr">bungieRefreshToken</span>:   tokenRes.<span class="hljs-property">data</span>.<span class="hljs-property">refresh_token</span>,
+            <span class="hljs-attr">bungieTokenExpiresAt</span>: <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>(<span class="hljs-title class_">Date</span>.<span class="hljs-title function_">now</span>() + tokenRes.<span class="hljs-property">data</span>.<span class="hljs-property">expires_in</span> * <span class="hljs-number">1000</span>),
+        },
+    });
+
+    <span class="hljs-keyword">return</span> tokenRes.<span class="hljs-property">data</span>.<span class="hljs-property">access_token</span>;
+}
+</div></code></pre>
+<h3 id="sécurité">Sécurité</h3>
+<ul>
+<li>Les tokens Bungie sont stockés côté serveur (jamais exposés au frontend)</li>
+<li>Le <code>JWT_SECRET</code> est chargé depuis les variables d'environnement (<code>.env</code>, hors versioning)</li>
+<li>Le middleware <code>requireAuth</code> vérifie systématiquement la validité du JWT avant tout accès aux routes protégées</li>
+</ul>
+<hr>
+<h2 id="viii-tests">VIII. Tests</h2>
+<h3 id="stack-de-test">Stack de test</h3>
+<table>
+<thead>
+<tr>
+<th>Périmètre</th>
+<th>Outil</th>
+<th>Version</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Backend</td>
+<td>Jest + Supertest</td>
+<td>29 / 7</td>
+</tr>
+<tr>
+<td>Frontend</td>
+<td>Vitest + @vue/test-utils</td>
+<td>3 / 2</td>
+</tr>
+<tr>
+<td>CI</td>
+<td>GitHub Actions</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h3 id="récapitulatif-général">Récapitulatif général</h3>
+<table>
+<thead>
+<tr>
+<th>Périmètre</th>
+<th>Fichier de test</th>
+<th style="text-align:right">Nb de tests</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Backend — Middleware</td>
+<td><code>requireAuth.test.js</code></td>
+<td style="text-align:right">4</td>
+</tr>
+<tr>
+<td>Backend — Service</td>
+<td><code>bungieService.test.js</code></td>
+<td style="text-align:right">5</td>
+</tr>
+<tr>
+<td>Backend — Service</td>
+<td><code>manifestService.test.js</code></td>
+<td style="text-align:right">5</td>
+</tr>
+<tr>
+<td>Backend — Route</td>
+<td><code>routerAuth.test.js</code></td>
+<td style="text-align:right">14</td>
+</tr>
+<tr>
+<td>Backend — Helpers</td>
+<td><code>routerMe.helpers.test.js</code></td>
+<td style="text-align:right">20</td>
+</tr>
+<tr>
+<td>Frontend — Router</td>
+<td><code>index.test.js</code></td>
+<td style="text-align:right">6</td>
+</tr>
+<tr>
+<td>Frontend — Vue</td>
+<td><code>LoginView.test.js</code></td>
+<td style="text-align:right">7</td>
+</tr>
+<tr>
+<td>Frontend — Vue</td>
+<td><code>HomeView.test.js</code></td>
+<td style="text-align:right">5</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td></td>
+<td style="text-align:right"><strong>66</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="tests-unitaires--middleware-requireauth">Tests unitaires — Middleware <code>requireAuth</code></h3>
+<p>Le middleware <code>requireAuth</code> est le gardien de toutes les routes protégées. Il vérifie la présence et la validité du token JWT dans le header <code>Authorization: Bearer &lt;token&gt;</code>.</p>
+<pre class="hljs"><code><div><span class="hljs-comment">// Extrait — src/backend/middleware/requireAuth.js</span>
+<span class="hljs-variable language_">module</span>.<span class="hljs-property">exports</span> = <span class="hljs-function">(<span class="hljs-params">req, res, next</span>) =&gt;</span> {
+    <span class="hljs-keyword">const</span> auth = req.<span class="hljs-property">headers</span>.<span class="hljs-property">authorization</span>;
+    <span class="hljs-keyword">if</span> (!auth?.<span class="hljs-title function_">startsWith</span>(<span class="hljs-string">&#x27;Bearer &#x27;</span>))
+        <span class="hljs-keyword">return</span> res.<span class="hljs-title function_">status</span>(<span class="hljs-number">401</span>).<span class="hljs-title function_">json</span>({ <span class="hljs-attr">error</span>: <span class="hljs-string">&#x27;Non autorisé.&#x27;</span> });
+    <span class="hljs-keyword">try</span> {
+        req.<span class="hljs-property">user</span> = jwt.<span class="hljs-title function_">verify</span>(auth.<span class="hljs-title function_">slice</span>(<span class="hljs-number">7</span>), <span class="hljs-variable constant_">JWT_SECRET</span>);
+        <span class="hljs-title function_">next</span>();
+    } <span class="hljs-keyword">catch</span> {
+        res.<span class="hljs-title function_">status</span>(<span class="hljs-number">401</span>).<span class="hljs-title function_">json</span>({ <span class="hljs-attr">error</span>: <span class="hljs-string">&#x27;Token invalide ou expiré.&#x27;</span> });
+    }
+};
+</div></code></pre>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Cas testé</th>
+<th>Résultat attendu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Header <code>Authorization</code> absent</td>
+<td><code>401</code> · <code>{ error: 'Non autorisé.' }</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>Header présent mais pas <code>Bearer </code></td>
+<td><code>401</code> · <code>next()</code> non appelé</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Token JWT invalide / expiré</td>
+<td><code>401</code> · <code>{ error: 'Token invalide ou expiré.' }</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td>Token JWT valide</td>
+<td><code>next()</code> appelé · <code>req.user</code> peuplé</td>
+</tr>
+</tbody>
+</table>
+<h3 id="tests-dintégration--route-post-apiauthregister">Tests d'intégration — Route <code>POST /api/auth/register</code></h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Cas testé</th>
+<th>Résultat attendu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Corps vide</td>
+<td><code>400</code> · <code>Email et mot de passe requis.</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>Email absent</td>
+<td><code>400</code> · <code>Email et mot de passe requis.</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Format email invalide</td>
+<td><code>400</code> · <code>Email invalide.</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td>Mot de passe &lt; 8 caractères</td>
+<td><code>400</code> · <code>Mot de passe trop court (min 8 caractères).</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td>Email déjà utilisé</td>
+<td><code>409</code> · <code>Cet email est déjà utilisé.</code></td>
+</tr>
+<tr>
+<td>6</td>
+<td>Données valides</td>
+<td><code>200</code> · <code>{ tempToken }</code> · <code>prisma.user.create</code> appelé 1×</td>
+</tr>
+</tbody>
+</table>
+<h3 id="tests-du-service-manifestservice">Tests du service <code>manifestService</code></h3>
+<p>Le <code>manifestService</code> interroge la base SQLite locale du Manifeste Destiny 2. Les tests utilisent <code>jest.doMock()</code> avec <code>jest.resetModules()</code> pour isoler chaque cas, car la base de données est instanciée au niveau du module.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Cas testé</th>
+<th>Résultat attendu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Hash trouvé en base</td>
+<td>Retourne l'objet JSON parsé</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Hash introuvable</td>
+<td>Retourne <code>null</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Erreur SQL (table inexistante)</td>
+<td>Retourne <code>null</code> sans lever d'exception</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Hash en entier 32-bit signé</td>
+<td><code>0xFFFFFF00</code> → requête SQL avec <code>-256</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td>Nom de table dynamique</td>
+<td><code>prepare()</code> appelé avec le bon <code>SELECT</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="ix-veille-sur-les-vulnérabilités-de-sécurité-du-projet">IX. Veille sur les vulnérabilités de sécurité du projet</h2>
+<h3 id="1-introduction">1. Introduction</h3>
+<p>Dans le cadre du développement de Guardian Ledger, j'ai mené une veille active sur les vulnérabilités de sécurité pouvant impacter une application Node.js/Express intégrant une authentification OAuth 2.0 et stockant des tokens d'accès à des services tiers.</p>
+<h3 id="2-méthodologie-de-veille">2. Méthodologie de veille</h3>
+<p>Ressources utilisées :</p>
+<ul>
+<li><strong>OWASP Top Ten</strong> : référence internationale pour les failles des applications web</li>
+<li><strong>Documentation officielle Express</strong> (sécurité en production)</li>
+<li><strong>Documentation Bungie API</strong> (bonnes pratiques OAuth)</li>
+</ul>
+<p>Mots-clés de recherche : <em>&quot;JWT security Node.js&quot;</em>, <em>&quot;OAuth 2.0 token storage best practices&quot;</em>, <em>&quot;Express CORS security&quot;</em></p>
+<h3 id="3-vulnérabilités-identifiées-et-traitées">3. Vulnérabilités identifiées et traitées</h3>
+<h4 id="a-exposition-du-jwt_secret">A. Exposition du <code>JWT_SECRET</code></h4>
+<p><strong>Risque :</strong> Si le <code>JWT_SECRET</code> est codé en dur dans le code source ou versionné, un attaquant peut forger des tokens JWT valides et usurper l'identité de n'importe quel utilisateur.</p>
+<p><strong>Solution appliquée :</strong> Le secret est chargé depuis la variable d'environnement <code>process.env.JWT_SECRET</code>. Le fichier <code>.env</code> est listé dans <code>.gitignore</code> et n'est jamais commité.</p>
+<pre class="hljs"><code><div><span class="hljs-keyword">const</span> <span class="hljs-variable constant_">JWT_SECRET</span> = process.<span class="hljs-property">env</span>.<span class="hljs-property">JWT_SECRET</span> || <span class="hljs-string">&#x27;guardian-ledger-dev-secret-changeme&#x27;</span>;
+</div></code></pre>
+<blockquote>
+<p>⚠️ La valeur de fallback <code>'guardian-ledger-dev-secret-changeme'</code> est uniquement destinée au développement local. En production, <code>JWT_SECRET</code> doit impérativement être défini dans les variables d'environnement.</p>
+</blockquote>
+<h4 id="b-stockage-des-tokens-bungie-côté-serveur">B. Stockage des tokens Bungie côté serveur</h4>
+<p><strong>Risque :</strong> Si les <code>access_token</code> et <code>refresh_token</code> Bungie étaient stockés côté client (localStorage), ils pourraient être volés via une attaque XSS.</p>
+<p><strong>Solution appliquée :</strong> Les tokens Bungie sont exclusivement stockés en base de données côté serveur. Le frontend ne reçoit que le JWT applicatif (<code>appToken</code>), qui ne contient pas les tokens Bungie.</p>
+<h4 id="c-validation-stricte-des-entrées-utilisateur">C. Validation stricte des entrées utilisateur</h4>
+<p><strong>Risque :</strong> Injections et données malformées sur les routes d'authentification.</p>
+<p><strong>Solution appliquée :</strong> Validation systématique des champs <code>email</code> et <code>password</code> à l'entrée de chaque route :</p>
+<pre class="hljs"><code><div><span class="hljs-keyword">if</span> (!email || !password)
+    <span class="hljs-keyword">return</span> res.<span class="hljs-title function_">status</span>(<span class="hljs-number">400</span>).<span class="hljs-title function_">json</span>({ <span class="hljs-attr">error</span>: <span class="hljs-string">&#x27;Email et mot de passe requis.&#x27;</span> });
+<span class="hljs-keyword">if</span> (!<span class="hljs-regexp">/^[^\s@]+@[^\s@]+\.[^\s@]+$/</span>.<span class="hljs-title function_">test</span>(email))
+    <span class="hljs-keyword">return</span> res.<span class="hljs-title function_">status</span>(<span class="hljs-number">400</span>).<span class="hljs-title function_">json</span>({ <span class="hljs-attr">error</span>: <span class="hljs-string">&#x27;Email invalide.&#x27;</span> });
+<span class="hljs-keyword">if</span> (password.<span class="hljs-property">length</span> &lt; <span class="hljs-number">8</span>)
+    <span class="hljs-keyword">return</span> res.<span class="hljs-title function_">status</span>(<span class="hljs-number">400</span>).<span class="hljs-title function_">json</span>({ <span class="hljs-attr">error</span>: <span class="hljs-string">&#x27;Mot de passe trop court (min 8 caractères).&#x27;</span> });
+</div></code></pre>
+<h4 id="d-protection-contre-les-injections-sql-manifeste">D. Protection contre les injections SQL (Manifeste)</h4>
+<p><strong>Risque :</strong> La construction dynamique du nom de table dans <code>manifestService</code> (<code>SELECT json FROM ${tableName} WHERE id = ?</code>) pourrait être vecteur d'injection si <code>tableName</code> provenait d'une entrée utilisateur.</p>
+<p><strong>État :</strong> <code>tableName</code> est uniquement fourni par le code interne (jamais par l'utilisateur). La valeur de <code>id</code> est passée en paramètre préparé (<code>stmt.get(id)</code>), ce qui protège contre l'injection SQL.</p>
+<h3 id="4-conclusion-sécurité">4. Conclusion sécurité</h3>
+<p>La conception de Guardian Ledger intègre les bonnes pratiques de sécurité dès la conception (<em>Security by Design</em>) : séparation des secrets, tokens serveur-side, validation des entrées, requêtes préparées. Ces mesures couvrent les risques les plus critiques de l'OWASP Top 10 applicables au projet (A02 – Cryptographic Failures, A03 – Injection, A07 – Identification and Authentication Failures).</p>
+<hr>
+<h2 id="x-description-dune-situation-de-travail-ayant-nécessité-une-recherche">X. Description d'une situation de travail ayant nécessité une recherche</h2>
+<h3 id="la-résolution-des-hash-destiny-2-en-entiers-32-bit-signés">La résolution des hash Destiny 2 en entiers 32-bit signés</h3>
+<h4 id="le-besoin">Le besoin</h4>
+<p>Lors de l'intégration du Manifeste Destiny 2, j'ai rencontré un problème inattendu : les réponses de l'API Bungie retournent des <strong>hash d'objets non signés</strong> sur 32 bits (exemple : <code>3245015_83</code>), mais la base SQLite du Manifeste stocke ces mêmes identifiants comme des <strong>entiers signés</strong> sur 32 bits (exemple : <code>-1049951413</code>).</p>
+<p>Un simple <code>WHERE id = 3245015_83</code> ne retournait donc aucun résultat.</p>
+<h4 id="la-recherche">La recherche</h4>
+<p>J'ai recherché sur Google avec les mots-clés : <em>&quot;bungie manifest hash sqlite signed integer&quot;</em>.</p>
+<p>J'ai découvert sur les forums de développeurs Bungie et sur Stack Overflow que c'est un comportement documenté et connu : le Manifeste utilise des entiers 32-bit signés pour des raisons historiques liées à SQLite, tandis que l'API renvoie les hashes non signés.</p>
+<h4 id="la-solution">La solution</h4>
+<p>La conversion s'effectue avec l'opérateur de décalage de bit <code>&gt;&gt; 0</code> en JavaScript, qui force la conversion d'un entier non signé en entier signé 32-bit :</p>
+<pre class="hljs"><code><div><span class="hljs-comment">// src/backend/services/manifestService.js</span>
+<span class="hljs-keyword">const</span> <span class="hljs-title function_">getDefinition</span> = (<span class="hljs-params">tableName, hash</span>) =&gt; {
+    <span class="hljs-keyword">try</span> {
+        <span class="hljs-comment">// Conversion du hash non signé (API Bungie) en entier 32-bit signé (SQLite)</span>
+        <span class="hljs-keyword">const</span> id = hash &gt;&gt; <span class="hljs-number">0</span>;
+        <span class="hljs-keyword">const</span> stmt = db.<span class="hljs-title function_">prepare</span>(<span class="hljs-string">`SELECT json FROM <span class="hljs-subst">${tableName}</span> WHERE id = ?`</span>);
+        <span class="hljs-keyword">const</span> row = stmt.<span class="hljs-title function_">get</span>(id);
+        <span class="hljs-keyword">return</span> row ? <span class="hljs-title class_">JSON</span>.<span class="hljs-title function_">parse</span>(row.<span class="hljs-property">json</span>) : <span class="hljs-literal">null</span>;
+    } <span class="hljs-keyword">catch</span> (error) {
+        <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">error</span>(<span class="hljs-string">&quot;Erreur SQL:&quot;</span>, error);
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+    }
+};
+</div></code></pre>
+<p><strong>Exemple :</strong></p>
+<ul>
+<li>Hash reçu de l'API : <code>0xFFFFFF00</code> (= <code>4294967040</code> en non signé)</li>
+<li>Après <code>&gt;&gt; 0</code> : <code>-256</code> (entier 32-bit signé)</li>
+<li>Requête SQL : <code>SELECT json FROM DestinyInventoryItemDefinition WHERE id = -256</code> ✓</li>
+</ul>
+<p>Ce comportement est même couvert par un test dédié dans <code>manifestService.test.js</code> (test n°4 du tableau récapitulatif).</p>
+<hr>
+<h2 id="xi-bilan-et-perspectives-du-projet">XI. Bilan et perspectives du projet</h2>
+<h3 id="bilan">Bilan</h3>
+<p>Guardian Ledger m'a permis de mettre en pratique, sur un projet concret et fonctionnel, l'ensemble des compétences du référentiel CDA. La principale valeur du projet réside dans la <strong>complexité réelle</strong> qu'il implique : l'intégration d'une API tierce avec OAuth 2.0, la gestion du renouvellement silencieux de tokens, l'interprétation d'un manifeste de données massif (300 Mo), et la mise en place d'une suite de tests automatisés complète.</p>
+<p>Points de satisfaction :</p>
+<ul>
+<li>Le flux OAuth 2.0 complet est fonctionnel et sécurisé</li>
+<li>Les 66 tests automatisés couvrent les cas nominaux et les cas d'erreur</li>
+<li>L'architecture découplée frontend/backend facilite la maintenabilité</li>
+</ul>
+<p>Points d'amélioration identifiés :</p>
+<ul>
+<li>La gestion du Manifeste (téléchargement, vérification de version) pourrait être automatisée via une tâche planifiée (CRON)</li>
+<li>L'interface Vault mériterait un système de pagination côté backend pour les coffres très fournis</li>
+<li>La couverture de tests frontend pourrait être étendue aux vues <code>Dashboard.vue</code> et <code>Vault.vue</code></li>
+</ul>
+<h3 id="perspectives">Perspectives</h3>
+<p>Les évolutions envisagées pour Guardian Ledger :</p>
+<ol>
+<li><strong>Gestion de plusieurs personnages</strong> : pouvoir basculer entre ses 3 personnages et voir l'inventaire de chacun</li>
+<li><strong>Transfert d'objets</strong> : utiliser l'API Bungie pour transférer des objets entre personnages et coffre</li>
+<li><strong>Recherche d'objets</strong> : moteur de recherche full-text dans le coffre</li>
+<li><strong>Mise en production</strong> : déploiement sur un VPS via Docker Compose avec reverse proxy Nginx</li>
+</ol>
+<hr>
+<h2 id="xii-conclusion">XII. Conclusion</h2>
+<p>Guardian Ledger a représenté un projet de formation particulièrement formateur et stimulant. Sa particularité, par rapport à un projet purement académique, est qu'il s'attaque à une vraie problématique d'intégration avec un système tiers complexe — l'API Bungie — qui impose ses propres contraintes, son propre protocole d'authentification et sa propre modélisation des données.</p>
+<p>La conception de l'architecture full-stack, le choix des technologies, la sécurisation de l'authentification, la gestion du manifeste SQLite et la mise en place d'une suite de tests complète m'ont permis de consolider concrètement chacune des onze compétences du référentiel CDA.</p>
+<p>Ce projet m'a également appris à rechercher de la documentation technique en anglais, à naviguer dans des APIs tierces mal documentées, et à persévérer face aux problèmes de données inattendus comme la conversion des hashes 32-bit. Ces compétences de débogage et de recherche autonome sont, à mes yeux, aussi importantes que les compétences techniques elles-mêmes.</p>
+<hr>
+<p><em>Document généré le 21 mai 2026</em></p>
+
+</body>
+</html>
