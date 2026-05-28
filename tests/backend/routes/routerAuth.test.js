@@ -6,6 +6,8 @@ jest.mock('../../../src/backend/db', () => ({
     user: {
         findUnique: jest.fn(),
         create: jest.fn(),
+        update: jest.fn(),
+        updateMany: jest.fn(),
     },
 }));
 
@@ -24,6 +26,7 @@ jest.mock('axios');
 // ── Imports après mocks ───────────────────────────────────────────────────
 const prisma = require('../../../src/backend/db');
 const bcrypt = require('bcryptjs');
+const axios = require('axios');
 const routerAuth = require('../../../src/backend/routes/routerAuth');
 
 // ── App Express minimale ──────────────────────────────────────────────────
@@ -83,6 +86,16 @@ describe('POST /api/auth/register', () => {
         expect(res.status).toBe(200);
         expect(res.body.tempToken).toBe('mock-jwt-token');
         expect(prisma.user.create).toHaveBeenCalledTimes(1);
+    });
+
+    it('retourne 500 si une erreur serveur survient lors de la création', async () => {
+        prisma.user.findUnique.mockResolvedValue(null);
+        prisma.user.create.mockRejectedValue(new Error('Erreur DB'));
+        const res = await request(app)
+            .post('/api/auth/register')
+            .send({ email: 'test@test.com', password: 'password123' });
+        expect(res.status).toBe(500);
+        expect(res.body.error).toBe('Erreur serveur.');
     });
 });
 
@@ -154,6 +167,15 @@ describe('POST /api/auth/login', () => {
         expect(res.body.appToken).toBe('mock-jwt-token');
         expect(res.body.displayName).toBe('GuardianXX#1234');
     });
+
+    it('retourne 500 si une erreur serveur survient lors de la connexion', async () => {
+        prisma.user.findUnique.mockRejectedValue(new Error('Erreur DB'));
+        const res = await request(app)
+            .post('/api/auth/login')
+            .send({ email: 'test@test.com', password: 'password123' });
+        expect(res.status).toBe(500);
+        expect(res.body.error).toBe('Erreur serveur.');
+    });
 });
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -192,5 +214,75 @@ describe('GET /api/auth/callback', () => {
             .query({ code: 'bungie-code-123', state: 'token-invalide' });
         expect(res.status).toBe(400);
         expect(res.text).toContain('Session expirée');
+    });
+
+    it('lie le compte Bungie et redirige vers le dashboard si le flux OAuth est complet', async () => {
+        jwt.verify.mockReturnValue({ type: 'link_bungie', userId: 1 });
+        jwt.sign.mockReturnValue('final-app-token');
+        axios.post.mockResolvedValue({
+            data: {
+                access_token: 'bungie-access',
+                refresh_token: 'bungie-refresh',
+                expires_in: 3600,
+                membership_id: '4611686018467765321',
+            },
+        });
+        axios.get.mockResolvedValue({
+            data: {
+                Response: {
+                    bungieNetUser: { uniqueName: 'GuardianX#1234' },
+                    destinyMemberships: [],
+                },
+            },
+        });
+        prisma.user.updateMany.mockResolvedValue({});
+        prisma.user.update.mockResolvedValue({});
+        prisma.user.findUnique.mockResolvedValue({
+            id: 1,
+            email: 'test@test.com',
+            displayName: 'GuardianX#1234',
+            bungieMembershipId: '4611686018467765321',
+        });
+
+        const res = await request(app)
+            .get('/api/auth/callback')
+            .query({ code: 'bungie-code', state: 'valid-state' })
+            .redirects(0);
+
+        expect(res.status).toBe(302);
+        expect(res.headers.location).toContain('/dashboard?appToken=');
+        expect(res.headers.location).toContain('final-app-token');
+    });
+
+    it('retourne 404 si l\'utilisateur est introuvable après le flux OAuth', async () => {
+        jwt.verify.mockReturnValue({ type: 'link_bungie', userId: 1 });
+        axios.post.mockResolvedValue({
+            data: { access_token: 'tok', refresh_token: 'ref', expires_in: 3600, membership_id: '999' },
+        });
+        axios.get.mockResolvedValue({
+            data: { Response: { bungieNetUser: { uniqueName: 'Unknown' }, destinyMemberships: [] } },
+        });
+        prisma.user.updateMany.mockResolvedValue({});
+        prisma.user.update.mockResolvedValue({});
+        prisma.user.findUnique.mockResolvedValue(null);
+
+        const res = await request(app)
+            .get('/api/auth/callback')
+            .query({ code: 'code', state: 'state' });
+
+        expect(res.status).toBe(404);
+        expect(res.text).toContain('introuvable');
+    });
+
+    it('retourne 500 si l\'échange de token Bungie échoue (axios.post rejeté)', async () => {
+        jwt.verify.mockReturnValue({ type: 'link_bungie', userId: 1 });
+        axios.post.mockRejectedValue(new Error('Bungie API unavailable'));
+
+        const res = await request(app)
+            .get('/api/auth/callback')
+            .query({ code: 'code', state: 'state' });
+
+        expect(res.status).toBe(500);
+        expect(res.text).toContain("Erreur lors de l'authentification Bungie.");
     });
 });

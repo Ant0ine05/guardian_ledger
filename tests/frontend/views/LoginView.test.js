@@ -93,4 +93,63 @@ describe('LoginView', () => {
         await flushPromises();
         expect(wrapper.text()).toContain('Impossible de contacter le serveur.');
     });
+
+    it('stocke le token et navigue vers /dashboard si la connexion réussit', async () => {
+        global.fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ appToken: 'final-token-xyz' }),
+        });
+        const wrapper = mount(LoginView, { global: { plugins: [router] } });
+        await wrapper.find('input[type="email"]').setValue('gardien@test.com');
+        await wrapper.find('input[type="password"]').setValue('password123');
+        await wrapper.find('form').trigger('submit');
+        await flushPromises();
+        expect(localStorage.getItem('app_token')).toBe('final-token-xyz');
+        expect(router.currentRoute.value.path).toBe('/dashboard');
+    });
+
+    it('bascule sur l\'onglet "bungie-redirect" si bungieRequired est true', async () => {
+        global.fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ bungieRequired: true, tempToken: 'temp-tok' }),
+        });
+        const wrapper = mount(LoginView, { global: { plugins: [router] } });
+        await wrapper.find('input[type="email"]').setValue('gardien@test.com');
+        await wrapper.find('input[type="password"]').setValue('password123');
+        await wrapper.find('form').trigger('submit');
+        await flushPromises();
+        expect(wrapper.text()).toContain('Connexion à Bungie.net...');
+    });
+
+    it('bascule sur l\'onglet "bungie-redirect" après inscription réussie', async () => {
+        global.fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ tempToken: 'temp-register-tok' }),
+        });
+        const wrapper = mount(LoginView, { global: { plugins: [router] } });
+        await wrapper.findAll('.tab-btn')[1].trigger('click');
+        const passwordInputs = wrapper.findAll('[autocomplete="new-password"]');
+        await wrapper.find('input[type="email"]').setValue('nouveau@test.com');
+        await passwordInputs[0].setValue('password123');
+        await passwordInputs[1].setValue('password123');
+        await wrapper.find('form').trigger('submit');
+        await flushPromises();
+        expect(wrapper.text()).toContain('Connexion à Bungie.net...');
+    });
+
+    it('affiche l\'erreur serveur si l\'inscription échoue', async () => {
+        global.fetch.mockResolvedValue({
+            ok: false,
+            json: async () => ({ error: 'Email déjà utilisé.' }),
+        });
+        const wrapper = mount(LoginView, { global: { plugins: [router] } });
+        await wrapper.findAll('.tab-btn')[1].trigger('click');
+        const passwordInputs = wrapper.findAll('[autocomplete="new-password"]');
+        await wrapper.find('input[type="email"]').setValue('exist@test.com');
+        await passwordInputs[0].setValue('password123');
+        await passwordInputs[1].setValue('password123');
+        await wrapper.find('form').trigger('submit');
+        await flushPromises();
+        expect(wrapper.text()).toContain('Email déjà utilisé.');
+    });
 });
