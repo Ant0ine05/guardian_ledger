@@ -8,7 +8,7 @@
   </div>
 
   <!-- BUNGIE ERROR -->
-  <div class="bungie-error" v-if="bungieError && !loading">⚠ {{ bungieError }}</div>
+  <div class="bungie-error" v-if="bungieError && !loading"><Icon icon="line-md:alert-circle" class="bungie-error-icon" /> {{ bungieError }}</div>
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
@@ -19,14 +19,14 @@
         <circle cx="18" cy="18" r="3" fill="#918EF4"/>
       </svg>
     </div>
-    <button class="nav-btn" title="Gardiens" @click="router.push('/dashboard')">◈</button>
-    <button class="nav-btn active" title="Vault">⊞</button>
-    <button class="nav-btn" title="Collections">⊡</button>
-    <button class="nav-btn" title="Triomphes">✦</button>
-    <button class="nav-btn" title="Carte">◎</button>
-    <button class="nav-btn" title="Season Pass">⊕</button>
+    <button class="nav-btn" title="Gardiens" @click="router.push('/dashboard')"><Icon icon="line-md:account" /></button>
+    <button class="nav-btn active" title="Vault"><Icon icon="line-md:grid-3" /></button>
+    <button class="nav-btn" title="Collections" @click="showToast('Collections — pas encore disponible')"><Icon icon="line-md:folder" /></button>
+    <button class="nav-btn" title="Triomphes" @click="showToast('Triomphes — pas encore disponible')"><Icon icon="line-md:star" /></button>
+    <button class="nav-btn" title="Carte" @click="showToast('Carte — pas encore disponible')"><Icon icon="line-md:compass" /></button>
+    <button class="nav-btn" title="Season Pass" @click="showToast('Season Pass — pas encore disponible')"><Icon icon="line-md:calendar" /></button>
     <div class="sidebar-spacer"></div>
-    <button class="nav-btn" title="Paramètres">⚙</button>
+    <button class="nav-btn" title="Paramètres" @click="showToast('Paramètres — pas encore disponible')"><Icon icon="line-md:cog" /></button>
     <div class="guardian-avatar">{{ userInitials }}</div>
   </aside>
 
@@ -43,10 +43,10 @@
       <input
         class="search-bar"
         type="text"
-        placeholder="🔍  Rechercher un item..."
+        placeholder="Rechercher un item..."
         v-model="searchQuery"
       />
-      <button class="reload-btn" :class="{ spinning: reloading }" title="Recharger les données" @click="reloadData">↻</button>
+      <button class="reload-btn" :class="{ spinning: reloading }" title="Recharger les données" @click="reloadData"><Icon :icon="reloading ? 'line-md:loading-loop' : 'line-md:arrow-right'" class="reload-icon" /></button>
     </div>
   </header>
 
@@ -75,7 +75,7 @@
           :class="['char-tab--' + char.class.toLowerCase(), { active: selectedCharId === char.id }]"
           @click="selectedCharId = char.id"
         >
-          <span class="char-tab-icon">{{ classTabIcon(char.class) }}</span>
+          <Icon :icon="classTabIcon(char.class)" class="char-tab-icon" />
           {{ char.class }}
         </button>
       </div>
@@ -135,7 +135,7 @@
             </div>
             <!-- Badge lumière -->
             <div class="char-light-badge">
-              <span class="char-light-star">✦</span>
+              <Icon icon="line-md:star" class="char-light-star" />
               <span class="char-light-val">{{ selectedChar.power }}</span>
             </div>
           </div>
@@ -242,7 +242,7 @@
             <span class="section-title">{{ section.label }}</span>
             <div class="section-header-right">
               <span class="section-count">{{ filteredVault[section.key].length }}</span>
-              <span class="section-chevron" :class="{ open: !collapsed[section.key] }">›</span>
+              <Icon icon="line-md:chevron-right" class="section-chevron" :class="{ open: !collapsed[section.key] }" />
             </div>
           </div>
           <div class="item-grid" v-if="!collapsed[section.key]">
@@ -284,7 +284,7 @@
 
   <!-- TOAST -->
   <div class="toast" :class="{show: toastVisible}">
-    <div class="toast-dot"></div>
+    <Icon icon="line-md:alert-circle" class="toast-icon" />
     {{ toastMessage }}
   </div>
 
@@ -315,6 +315,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ItemDetailModal from '../component/ItemDetailModal.vue'
+import { Icon } from '@iconify/vue'
 
 const route  = useRoute()
 const router = useRouter()
@@ -375,9 +376,9 @@ function getCharInvByBucket(bucketHash) {
 }
 
 function classTabIcon(cls) {
-  if (cls === 'Titan')    return '⬡'
-  if (cls === 'Chasseur') return '◇'
-  return '✦'
+  if (cls === 'Titan')    return 'line-md:person-twotone'
+  if (cls === 'Chasseur') return 'line-md:compass'
+  return 'line-md:star'
 }
 
 // ── Vault sections ────────────────────────────────────────────────────────
@@ -762,7 +763,7 @@ async function handleTransfer({ instanceId, itemHash, transferToVault, character
 .char-tab.active { background: rgba(145,142,244,.15); border-color: rgba(145,142,244,.35); color: var(--soft-periwinkle) }
 .char-tab--titan.active   { background: rgba(48,107,172,.15); border-color: rgba(48,107,172,.45); color: #6db4e8 }
 .char-tab--chasseur.active{ background: rgba(111,156,235,.12); border-color: rgba(111,156,235,.4); color: var(--cornflower) }
-.char-tab-icon { font-size: 14px }
+.char-tab-icon { width:15px; height:15px; flex-shrink:0 }
 
 /* En-tête personnage */
 .char-header {
@@ -863,7 +864,7 @@ async function handleTransfer({ instanceId, itemHash, transferToVault, character
   padding: 5px 10px; background: rgba(244,196,65,.07);
   border: 1px solid rgba(244,196,65,.22); border-radius: 8px; width: fit-content;
 }
-.char-light-star { color: #f4c441; font-size: 11px }
+.char-light-star { color: #f4c441; width: 12px; height: 12px; flex-shrink: 0 }
 .char-light-val  {
   font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 700; color: #f4c441;
 }
