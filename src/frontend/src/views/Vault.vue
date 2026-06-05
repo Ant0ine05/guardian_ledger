@@ -13,11 +13,7 @@
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <polygon points="18,2 34,30 2,30" fill="none" stroke="#918EF4" stroke-width="2"/>
-        <polygon points="18,10 28,27 8,27" fill="rgba(145,142,244,0.15)" stroke="#6F9CEB" stroke-width="1.5"/>
-        <circle cx="18" cy="18" r="3" fill="#918EF4"/>
-      </svg>
+      <img :src="appLogo" alt="Guardian Ledger" />
     </div>
     <button class="nav-btn" title="Gardiens" @click="router.push('/dashboard')"><Icon icon="line-md:account" /></button>
     <button class="nav-btn active" title="Vault"><Icon icon="line-md:grid-3" /></button>
@@ -316,6 +312,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ItemDetailModal from '../component/ItemDetailModal.vue'
 import { Icon } from '@iconify/vue'
+import appLogo from '@/assets/Logo.png'
 
 const route  = useRoute()
 const router = useRouter()
