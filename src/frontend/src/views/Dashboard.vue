@@ -13,20 +13,16 @@
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <polygon points="18,2 34,30 2,30" fill="none" stroke="#918EF4" stroke-width="2"/>
-        <polygon points="18,10 28,27 8,27" fill="rgba(145,142,244,0.15)" stroke="#6F9CEB" stroke-width="1.5"/>
-        <circle cx="18" cy="18" r="3" fill="#918EF4"/>
-      </svg>
+      <img :src="appLogo" alt="Guardian Ledger" />
     </div>
-    <button class="nav-btn active" title="Gardiens">◈</button>
-    <button class="nav-btn" title="Vault" @click="router.push('/vault')">⊞</button>
-    <button class="nav-btn" title="Collections">⊡</button>
-    <button class="nav-btn" title="Triomphes">✦</button>
-    <button class="nav-btn" title="Carte">◎</button>
-    <button class="nav-btn" title="Season Pass">⊕</button>
+    <button class="nav-btn active" title="Gardiens"><Icon icon="line-md:account" /></button>
+    <button class="nav-btn" title="Vault" @click="router.push('/vault')"><Icon icon="line-md:grid-3" /></button>
+    <button class="nav-btn" title="Collections" @click="showToast('Collections — pas encore disponible')"><Icon icon="line-md:folder" /></button>
+    <button class="nav-btn" title="Triomphes" @click="showToast('Triomphes — pas encore disponible')"><Icon icon="line-md:star" /></button>
+    <button class="nav-btn" title="Carte" @click="showToast('Carte — pas encore disponible')"><Icon icon="line-md:compass" /></button>
+    <button class="nav-btn" title="Season Pass" @click="showToast('Season Pass — pas encore disponible')"><Icon icon="line-md:calendar" /></button>
     <div class="sidebar-spacer"></div>
-    <button class="nav-btn" title="Paramètres">⚙</button>
+    <button class="nav-btn" title="Paramètres" @click="showToast('Paramètres — pas encore disponible')"><Icon icon="line-md:cog" /></button>
     <div class="guardian-avatar">{{ userInitials }}</div>
   </aside>
 
@@ -89,7 +85,7 @@
             <div class="gc-race-sub">{{ char.race }}<span v-if="char.subclass"> · {{ char.subclass }}</span></div>
           </div>
           <div class="gc-power">
-            <span class="gc-power-star">✦</span>
+            <Icon icon="line-md:star" class="gc-power-star-icon" />
             <span class="gc-power-val">{{ char.power }}</span>
           </div>
         </div>
@@ -115,7 +111,7 @@
             </div>
             <!-- Light level badge -->
             <div class="gc-light">
-              <span>✦</span>
+              <Icon icon="line-md:star" class="gc-light-star" />
               <span class="gc-light-num">{{ char.power }}</span>
             </div>
           </div>
@@ -189,9 +185,9 @@
           class="gc-manage-btn"
           @click="router.push({ path: '/vault', query: { charId: char.id } })"
         >
-          <span class="gc-manage-icon">⊞</span>
+          <Icon icon="line-md:grid-3" class="gc-manage-icon" />
           Gérer l'équipement
-          <span class="gc-manage-arrow">→</span>
+          <Icon icon="line-md:arrow-right" class="gc-manage-arrow" />
         </button>
 
       </div>
@@ -201,7 +197,7 @@
 
   <!-- TOAST -->
   <div class="toast" :class="{show: toastVisible}">
-    <div class="toast-dot"></div>
+    <Icon icon="line-md:alert-circle" class="toast-icon" />
     {{ toastMessage }}
   </div>
 
@@ -211,6 +207,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { Icon } from '@iconify/vue'
+import appLogo from '@/assets/Logo.png'
 
 const route  = useRoute()
 const router = useRouter()
@@ -353,7 +351,7 @@ const showToast = (msg) => {
   margin-top: 2px;
 }
 .gc-power { display: flex; align-items: center; gap: 5px }
-.gc-power-star { color: #f4c441; font-size: 14px }
+.gc-power-star-icon { color: #f4c441; font-size: 16px; width: 16px; height: 16px; flex-shrink: 0 }
 .gc-power-val {
   font-family: 'Rajdhani', sans-serif;
   font-size: 28px; font-weight: 700;
@@ -420,7 +418,7 @@ const showToast = (msg) => {
   border-radius: 6px;
   width: 60px;
 }
-.gc-light > span:first-child { color: #f4c441; font-size: 10px }
+.gc-light-star { color: #f4c441; width: 12px; height: 12px; flex-shrink: 0 }
 .gc-light-num {
   font-family: 'Rajdhani', sans-serif;
   font-size: 13px; font-weight: 700;
@@ -492,7 +490,7 @@ const showToast = (msg) => {
 .guardian-card[data-char-class="Chasseur"] .gc-manage-btn:hover {
   background: rgba(111,156,235,.18); border-color: rgba(111,156,235,.45);
 }
-.gc-manage-icon { font-size: 13px }
-.gc-manage-arrow { margin-left: auto; opacity: .6; transition: transform .15s }
+.gc-manage-icon { font-size: 15px; width: 15px; height: 15px; flex-shrink: 0 }
+.gc-manage-arrow { margin-left: auto; opacity: .6; transition: transform .15s; width: 14px; height: 14px; flex-shrink: 0 }
 .gc-manage-btn:hover .gc-manage-arrow { transform: translateX(3px); opacity: 1 }
 </style>

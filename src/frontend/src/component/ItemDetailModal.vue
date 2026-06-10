@@ -5,7 +5,7 @@
 
         <!-- ══ HEADER ══ -->
         <div class="idm-header" :class="`rc-${item.rarity}`">
-          <button class="idm-close" @click="$emit('close')">✕</button>
+          <button class="idm-close" @click="$emit('close')"><Icon icon="line-md:close" /></button>
 
           <div class="idm-icon-wrap" :class="`rc-${item.rarity}`">
             <img v-if="item.icon" :src="item.icon" :alt="item.name" class="idm-icon-img" />
@@ -23,26 +23,26 @@
           </div>
 
           <div class="idm-power-badge">
-            <span class="idm-power-star">✦</span>
+            <Icon icon="line-md:star" class="idm-power-star" />
             <span class="idm-power-num">{{ item.power }}</span>
           </div>
         </div>
 
         <!-- ══ BARRE DE TRANSFERT ══ -->
         <div class="idm-transfer-bar" v-if="item.instanced && characters.length">
-          <span class="idm-transfer-label">⇄ Transférer vers</span>
+          <span class="idm-transfer-label"><Icon icon="line-md:arrows-horizontal" class="idm-transfer-icon" /> Transférer vers</span>
           <button
             class="idm-transfer-btn vault"
             @click="doTransfer(true, characters[0].id)"
             title="Envoyer dans le coffre"
-          >⌂ Coffre</button>
+          ><Icon icon="line-md:home-twotone" class="idm-btn-icon" /> Coffre</button>
           <button
             v-for="char in characters" :key="char.id"
             class="idm-transfer-btn char"
             @click="doTransfer(false, char.id)"
             :title="`${char.class} \u2022 ${char.power} \u2656`"
           >
-            <span class="idm-transfer-class-icon">{{ classIcon(char.class) }}</span>
+            <Icon :icon="classIcon(char.class)" class="idm-transfer-class-icon" />
             {{ char.class }}
           </button>
         </div>
@@ -98,7 +98,7 @@
               >
                 <div class="idm-intr-icon">
                   <img v-if="intrinsicSocket.plugs[0]?.icon" :src="intrinsicSocket.plugs[0].icon" class="idm-intr-img" />
-                  <span v-else>◈</span>
+                  <Icon v-else icon="line-md:close-circle" class="idm-plug-fb" />
                 </div>
                 <div class="idm-intr-text">
                   <div class="idm-intr-name">{{ intrinsicSocket.plugs[0]?.name }}</div>
@@ -123,7 +123,7 @@
                   @mouseleave="onLeave"
                 >
                   <img v-if="currentPlug(sock)?.icon" :src="currentPlug(sock).icon" class="idm-plug-img" />
-                  <span v-else class="idm-plug-fb">◈</span>
+                  <Icon v-else icon="line-md:close-circle" class="idm-plug-fb" />
                 </div>
               </div>
             </div>
@@ -148,7 +148,7 @@
                   @mouseleave="onLeave"
                 >
                   <img v-if="plug.icon" :src="plug.icon" class="idm-plug-img" />
-                  <span v-else class="idm-plug-fb">◈</span>
+                  <Icon v-else icon="line-md:close-circle" class="idm-plug-fb" />
                 </div>
               </div>
             </div>
@@ -180,6 +180,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { Icon } from '@iconify/vue'
 
 const props = defineProps({
   item:       { type: Object,  required: true },
@@ -200,8 +201,8 @@ function doTransfer(transferToVault, characterId) {
   })
 }
 
-const CLASS_ICONS = { 'Titan': '⛕', 'Chasseur': '◳', 'Arcaniste': '☆' }
-function classIcon(cls) { return CLASS_ICONS[cls] ?? '◈' }
+const CLASS_ICONS = { 'Titan': 'line-md:person-twotone', 'Chasseur': 'line-md:compass', 'Arcaniste': 'line-md:star' }
+function classIcon(cls) { return CLASS_ICONS[cls] ?? 'line-md:account-small' }
 
 /* ── Tooltip ── */
 const tip = ref(null)
@@ -287,10 +288,11 @@ function currentPlug(sock) {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.4);
-  cursor: pointer; font-size: 11px;
+  cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   transition: all 0.15s;
 }
+.idm-close svg { width: 14px; height: 14px }
 .idm-close:hover { background: rgba(255, 255, 255, 0.12); color: #fff }
 
 /* ══ HEADER ══ */
@@ -344,7 +346,7 @@ function currentPlug(sock) {
   position: absolute; top: 16px; right: 44px;
   display: flex; align-items: baseline; gap: 3px;
 }
-.idm-power-star { color: var(--rc, #ceae33); font-size: 10px }
+.idm-power-star { color: var(--rc, #ceae33); width: 12px; height: 12px; flex-shrink: 0 }
 .idm-power-num  { font-family: 'Rajdhani', sans-serif; font-size: 28px; font-weight: 700; color: #f0ece4; line-height: 1 }
 
 /* ══ BARRE DE TRANSFERT ══ */
@@ -364,7 +366,11 @@ function currentPlug(sock) {
   color: rgba(255, 255, 255, 0.28);
   margin-right: 4px;
   white-space: nowrap;
+  display: flex; align-items: center; gap: 5px;
 }
+.idm-transfer-icon { width: 13px; height: 13px; flex-shrink: 0 }
+.idm-btn-icon { width: 13px; height: 13px; flex-shrink: 0 }
+.idm-transfer-class-icon { width: 13px; height: 13px; flex-shrink: 0 }
 .idm-transfer-btn {
   display: flex;
   align-items: center;
@@ -586,7 +592,7 @@ function currentPlug(sock) {
   filter: none;
 }
 .idm-plug-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50% }
-.idm-plug-fb  { color: rgba(255, 255, 255, 0.25); font-size: 18px }
+.idm-plug-fb  { color: rgba(255, 255, 255, 0.25); width: 18px; height: 18px }
 
 /* ══ VIDE ══ */
 .idm-empty {

@@ -1,1 +1,31 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 261.76 226.69"><path d="M161.096.001l-30.225 52.351L100.647.001H-.005l130.877 226.688L261.749.001z" fill="#41b883"/><path d="M161.096.001l-30.225 52.351L100.647.001H52.346l78.526 136.01L209.398.001z" fill="#34495e"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+	<defs>
+		<linearGradient id="gl-gradient" x1="64" y1="56" x2="448" y2="456" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#88E9FF"/>
+			<stop offset="1" stop-color="#7776FF"/>
+		</linearGradient>
+		<filter id="gl-glow" x="0" y="0" width="512" height="512" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+			<feGaussianBlur stdDeviation="2" result="blur"/>
+			<feMerge>
+				<feMergeNode in="blur"/>
+				<feMergeNode in="SourceGraphic"/>
+			</feMerge>
+		</filter>
+	</defs>
+
+	<g stroke="url(#gl-gradient)" stroke-linecap="round" stroke-linejoin="round" filter="url(#gl-glow)">
+		<path d="M256 60L288 116H224L256 60Z" stroke-width="9"/>
+		<path d="M256 84L273 113H239L256 84Z" stroke-width="7"/>
+
+		<path d="M108 166L256 112L404 166L384 344L256 448L128 344L108 166Z" stroke-width="10"/>
+		<path d="M136 186L256 142L376 186L360 330L256 416L152 330L136 186Z" stroke-width="7" opacity="0.95"/>
+		<path d="M160 206L256 172L352 206L340 316L256 388L172 316L160 206Z" stroke-width="5" opacity="0.9"/>
+
+		<path d="M306 198C286 175 250 166 214 176C168 188 138 226 138 270C138 317 170 355 214 366C248 375 284 367 308 344" stroke-width="13"/>
+		<path d="M286 236C274 224 253 220 232 226C203 235 184 260 184 286C184 313 204 337 232 345C252 351 273 347 287 335" stroke-width="11"/>
+
+		<path d="M252 286H338" stroke-width="11"/>
+		<path d="M252 286V420H356" stroke-width="13"/>
+		<path d="M252 320H312" stroke-width="10"/>
+	</g>
+</svg>
