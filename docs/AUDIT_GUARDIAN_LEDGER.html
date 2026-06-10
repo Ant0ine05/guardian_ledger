@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Rapport d'audit — Guardian Ledger</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: #1a1a2e;
+    font-size: 11px;
+    line-height: 1.55;
+    margin: 0;
+  }
+  h1 { font-size: 24px; margin: 0 0 2px; color: #141B41; }
+  .subtitle { color: #555; font-size: 12px; margin-bottom: 4px; }
+  .meta { color: #777; font-size: 10px; margin-bottom: 18px; }
+  .intro {
+    background: #f0f2fa; border-left: 4px solid #306BAC;
+    padding: 10px 14px; border-radius: 4px; margin-bottom: 20px;
+  }
+  h2 {
+    font-size: 16px; margin: 26px 0 10px; padding: 7px 12px;
+    border-radius: 5px; color: #fff;
+    page-break-after: avoid;
+  }
+  h2.critique  { background: #b3261e; }
+  h2.important { background: #d97706; }
+  h2.mineur    { background: #b8a313; }
+  h2.synthese  { background: #141B41; }
+  h3 {
+    font-size: 12.5px; margin: 16px 0 6px; color: #141B41;
+    page-break-after: avoid;
+  }
+  h3 .tag {
+    display: inline-block; font-size: 9px; font-weight: 700;
+    padding: 1px 7px; border-radius: 10px; color: #fff;
+    vertical-align: 2px; margin-right: 6px; letter-spacing: .5px;
+  }
+  .tag-c { background: #b3261e; }
+  .tag-i { background: #d97706; }
+  code, pre {
+    font-family: "Consolas", "Courier New", monospace;
+    background: #f4f4f8; border-radius: 3px;
+  }
+  code { padding: 1px 4px; font-size: 10px; color: #8a1f5c; }
+  pre {
+    border: 1px solid #e0e0ea; padding: 9px 12px;
+    font-size: 9.5px; line-height: 1.45; overflow-x: hidden;
+    white-space: pre-wrap; word-wrap: break-word;
+    page-break-inside: avoid;
+  }
+  pre code { background: none; padding: 0; color: #1a1a2e; }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 10px; }
+  th, td { border: 1px solid #d5d5e0; padding: 6px 8px; text-align: left; vertical-align: top; }
+  th { background: #141B41; color: #fff; font-weight: 600; }
+  tr:nth-child(even) td { background: #f7f7fb; }
+  .file { font-family: "Consolas", monospace; font-size: 10px; color: #306BAC; font-weight: 600; }
+  .danger { color: #b3261e; font-weight: 700; }
+  ul { margin: 6px 0; padding-left: 20px; }
+  li { margin-bottom: 3px; }
+  .footer { margin-top: 30px; padding-top: 10px; border-top: 1px solid #ccc; color: #888; font-size: 9px; }
+  .pagebreak { page-break-before: always; }
+</style>
+</head>
+<body>
+
+<h1>🔍 Rapport d'audit — Guardian Ledger</h1>
+<div class="subtitle">Audit de sécurité, d'architecture et de performance</div>
+<div class="meta">
+  Dépôt : github.com/Ant0ine05/guardian_ledger &nbsp;·&nbsp; Branche : main (commit 50c8cf8) &nbsp;·&nbsp; Date : 11 juin 2026
+</div>
+
+<div class="intro">
+  <strong>Stack analysée :</strong> Vue 3 + Vite (frontend) · Express 5 + Prisma/SQLite (backend) ·
+  Nginx + Certbot + Docker Compose · CI/CD GitHub Actions → VPS.<br><br>
+  L'architecture est globalement saine et bien découpée (routes / services / middleware, tests présents,
+  CI fonctionnelle), mais l'audit révèle <strong class="danger">4 failles critiques, dont une fuite de
+  données réelle déjà publiée sur GitHub</strong>, 7 problèmes importants et 10 points mineurs.
+</div>
+
+<h2 class="critique">🔴 NIVEAU CRITIQUE</h2>
+
+<h3><span class="tag tag-c">C1</span>users.db commitée et poussée sur GitHub public — fuite de données réelle</h3>
+<p>
+<span class="file">src/backend/data/users.db</span> est trackée par git et présente sur le dépôt public.
+L'inspection du blob commité confirme qu'il contient <strong class="danger">des emails réels,
+des hashs bcrypt ($2b$12$…) et des tokens OAuth Bungie (access + refresh)</strong>.
+Le <code>.gitignore</code> racine liste bien le fichier, mais gitignore n'a aucun effet sur un fichier déjà tracké.
+</p>
+<p><strong>Commandes à exécuter immédiatement :</strong></p>
+<pre><code># 1. Détracker le fichier
+git rm --cached src/backend/data/users.db
+git commit -m "security: remove users.db from version control"
+
+# 2. Purger TOUT l'historique (le fichier reste dans les anciens commits sinon)
+pip install git-filter-repo
+git filter-repo --invert-paths --path src/backend/data/users.db --force
+git remote add origin https://github.com/Ant0ine05/guardian_ledger.git
+git push origin --force --all
+
+# 3. Révoquer les secrets exposés :
+#    - Régénérer CLIENT_SECRET et BUNGIE_API_KEY sur bungie.net/en/Application
+#    - Régénérer JWT_SECRET sur le VPS
+#    - Vider les colonnes bungieAccessToken / bungieRefreshToken en base prod
+#    - Forcer un reset de mot de passe pour les comptes concernés</code></pre>
+
+<h3><span class="tag tag-c">C2</span>Secret JWT par défaut hardcodé — forge de tokens possible</h3>
+<p>
+<span class="file">routes/routerAuth.js:7</span> et <span class="file">middleware/requireAuth.js:2</span> :
+</p>
+<pre><code>const JWT_SECRET = process.env.JWT_SECRET || 'guardian-ledger-dev-secret-changeme';</code></pre>
+<p>
+Ce fallback est public sur GitHub. Si <code>JWT_SECRET</code> manque dans l'environnement de production
+(faute de frappe dans le .env, oubli), <strong class="danger">n'importe qui peut forger un appToken valide</strong>
+et accéder aux comptes Bungie liés. Un secret manquant doit faire crasher le serveur, pas dégrader silencieusement :
+</p>
+<pre><code>// config commune (ex : src/backend/config.js)
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET || JWT_SECRET.length &lt; 32) {
+    throw new Error('JWT_SECRET manquant ou trop court — démarrage refusé.');
+}
+module.exports = { JWT_SECRET };
+// puis dans les deux fichiers : const { JWT_SECRET } = require('../config');</code></pre>
+
+<h3><span class="tag tag-c">C3</span>Callback OAuth : state facultatif + token de session dans l'URL</h3>
+<p><span class="file">routes/routerAuth.js:99-111</span> — deux problèmes combinés :</p>
+<ul>
+  <li><strong>state est optionnel</strong> : s'il est absent, le code continue (<code>userId = null</code>),
+  retombe sur <code>findUnique({ where: { bungieMembershipId } })</code> (ligne 182) et
+  <strong class="danger">émet un JWT valable 7 jours</strong>. Un attaquant peut forger l'URL
+  <code>/api/auth/callback?code=&lt;son propre code Bungie&gt;</code> sans state — c'est aussi un vecteur
+  de <em>login CSRF</em>. Même chose si <code>decoded.type !== 'link_bungie'</code> : aucun rejet.</li>
+  <li><strong>Le JWT final part dans la query string</strong> (ligne 198) : <code>?appToken=…</code>
+  finit dans l'historique navigateur, les logs nginx et les en-têtes Referer.</li>
+</ul>
+<pre><code>router.get('/callback', async (req, res) =&gt; {
+    const { code, state } = req.query;
+    if (!code)  return res.status(400).send('Code OAuth manquant.');
+    if (!state) return res.status(400).send('State manquant. Veuillez recommencer.');
+
+    let userId;
+    try {
+        const decoded = jwt.verify(state, JWT_SECRET);
+        if (decoded.type !== 'link_bungie') throw new Error('bad type');
+        userId = decoded.userId;
+    } catch {
+        return res.status(400).send('Session expirée. Veuillez recommencer la connexion.');
+    }
+    // ... le reste devient inconditionnel : plus de branches userId-null</code></pre>
+<p>
+Pour le token dans l'URL, a minima passer par un <strong>fragment</strong> (jamais envoyé au serveur ni
+dans le Referer) : <code>res.redirect(`${FRONTEND_URL}/dashboard#appToken=${appToken}`)</code> et côté
+<span class="file">Dashboard.vue:289</span> lire
+<code>new URLSearchParams(location.hash.slice(1)).get('appToken')</code>.
+Solution cible : cookie <code>httpOnly; Secure; SameSite=Lax</code>.
+</p>
+
+<h3><span class="tag tag-c">C4</span>Build Docker cassé / dangereux : pas de .dockerignore + Node 18 incompatible</h3>
+<ul>
+  <li>Aucun <code>.dockerignore</code> n'existe : <code>COPY . .</code> embarque dans l'image
+  <strong>node_modules Windows</strong> (le binaire natif better-sqlite3 compilé pour win32 écrase celui
+  installé pour Alpine → crash au démarrage), <strong>manifest.db (305 Mo)</strong> et <strong>users.db</strong>.</li>
+  <li><span class="file">src/frontend/Dockerfile:2</span> utilise <code>node:18-alpine</code> alors que le
+  package.json frontend exige <code>^20.19.0 || &gt;=22.12.0</code> (Vite 7 refuse Node 18).
+  Prisma 7 côté backend exige aussi Node ≥ 20.</li>
+</ul>
+<pre><code># src/backend/Dockerfile et src/frontend/Dockerfile — ligne 1
+FROM node:22-alpine
+
+# src/backend/.dockerignore (à créer)
+node_modules
+data/
+.env
+*.db
+
+# src/frontend/.dockerignore (à créer)
+node_modules
+dist</code></pre>
+<p>Dans le Dockerfile backend, remplacer <code>RUN npm install</code> par <code>RUN npm ci</code>
+(build reproductible, comme en CI).</p>
+
+<div class="pagebreak"></div>
+<h2 class="important">🟠 NIVEAU IMPORTANT</h2>
+
+<h3><span class="tag tag-i">I1</span>CORS ouvert à tous + aucun rate-limiting + pas de headers de sécurité</h3>
+<p>
+<span class="file">server.js:6</span> : <code>app.use(cors())</code> autorise toutes les origines, et
+<code>/api/auth/login</code> / <code>register</code> n'ont aucune protection brute-force
+(bcrypt cost 12 rend chaque tentative coûteuse <em>pour le serveur aussi</em> → vecteur DoS).
+</p>
+<pre><code>const rateLimit = require('express-rate-limit');   // npm i express-rate-limit helmet
+const helmet = require('helmet');
+
+app.use(helmet());
+app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
+app.set('trust proxy', 1); // derrière nginx, sinon req.ip = IP du proxy
+
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 20 });
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);</code></pre>
+
+<h3><span class="tag tag-i">I2</span>Rafraîchissement du site cassé en prod (404 sur /dashboard)</h3>
+<p>
+Le conteneur frontend sert la SPA avec la config nginx <strong>par défaut</strong>
+(<span class="file">src/frontend/Dockerfile:12-15</span>) : pas de fallback history-mode.
+Un F5 sur <code>/dashboard</code> ou <code>/vault</code> → 404. D'autant plus grave que le flux OAuth
+<strong class="danger">atterrit précisément sur /dashboard?appToken=…</strong> : la liaison Bungie est
+donc cassée en production.
+</p>
+<pre><code># src/frontend/nginx.conf (à créer)
+server {
+    listen 80;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+
+# src/frontend/Dockerfile — ajouter avant CMD
+COPY nginx.conf /etc/nginx/conf.d/default.conf</code></pre>
+
+<h3><span class="tag tag-i">I3</span>Goulot d'étranglement majeur : manifestService.js</h3>
+<p>
+<span class="file">services/manifestService.js:7-13</span> cumule trois problèmes pour la route la plus
+chaude du site (<code>/api/me/destiny</code> fait des <strong>centaines</strong> d'appels
+<code>getDefinition</code> par requête — items + plugs + plugsets) :
+</p>
+<ul>
+  <li><code>verbose: console.log</code> → <strong>chaque requête SQL est loggée en prod</strong>
+  (I/O console synchrone, énorme ralentissement) ;</li>
+  <li><code>db.prepare(…)</code> est recompilé <strong>à chaque appel</strong> au lieu d'être mis en cache ;</li>
+  <li><code>JSON.parse</code> répété sur les mêmes définitions, sans cache ;</li>
+  <li>bonus : nom de table interpolé dans le SQL — non exploitable aujourd'hui (appelants hardcodés),
+  mais une whitelist coûte 3 lignes.</li>
+</ul>
+<pre><code>const Database = require('better-sqlite3');
+const path = require('path');
+
+const dbPath = path.resolve(__dirname, '../data/manifest.db');
+const db = new Database(dbPath, { readonly: true, fileMustExist: true });
+
+const ALLOWED_TABLES = new Set([
+    'DestinyInventoryItemDefinition', 'DestinyInventoryBucketDefinition',
+    'DestinyStatDefinition', 'DestinyStatGroupDefinition', 'DestinyPlugSetDefinition',
+]);
+
+const stmtCache = new Map(); // table → prepared statement
+const defCache  = new Map(); // "table:hash" → définition parsée
+
+const getDefinition = (tableName, hash) =&gt; {
+    if (!ALLOWED_TABLES.has(tableName)) return null;
+    const key = `${tableName}:${hash}`;
+    if (defCache.has(key)) return defCache.get(key);
+    try {
+        let stmt = stmtCache.get(tableName);
+        if (!stmt) {
+            stmt = db.prepare(`SELECT json FROM ${tableName} WHERE id = ?`);
+            stmtCache.set(tableName, stmt);
+        }
+        const row = stmt.get(hash &gt;&gt; 0);
+        const def = row ? JSON.parse(row.json) : null;
+        if (defCache.size &gt; 20000) defCache.clear(); // garde-fou mémoire
+        defCache.set(key, def);
+        return def;
+    } catch (error) {
+        console.error('Erreur SQL:', error);
+        return null;
+    }
+};
+
+module.exports = { getDefinition };</code></pre>
+
+<h3><span class="tag tag-i">I4</span>Course critique sur le refresh token Bungie</h3>
+<p>
+<span class="file">routes/routerMe.js:65-102</span> — Bungie <strong>fait tourner le refresh token à
+chaque usage</strong>. Or la file de transferts côté Vault + l'ouverture d'une modale de détail peuvent
+déclencher plusieurs requêtes simultanées : deux <code>ensureFreshToken</code> concurrents consomment le
+même refresh token → le second échoue et peut <strong class="danger">invalider la session Bungie de
+l'utilisateur</strong> (le symptôme correspond au commit « requete en parralle a verifier in game »).
+Mutex par utilisateur :
+</p>
+<pre><code>const refreshLocks = new Map(); // userId → Promise en cours
+
+async function ensureFreshToken(user) {
+    const expiresAt = user.bungieTokenExpiresAt ? new Date(user.bungieTokenExpiresAt) : null;
+    if (expiresAt &amp;&amp; Date.now() &lt; expiresAt.getTime() - 5 * 60 * 1000)
+        return user.bungieAccessToken;
+
+    if (refreshLocks.has(user.id)) return refreshLocks.get(user.id);
+
+    const job = (async () =&gt; {
+        try {
+            // ... corps actuel du refresh, inchangé ...
+            return newAccessToken;
+        } finally {
+            refreshLocks.delete(user.id);
+        }
+    })();
+    refreshLocks.set(user.id, job);
+    return job;
+}</code></pre>
+
+<h3><span class="tag tag-i">I5</span>destinyMemberships[0] ignore le cross-save</h3>
+<p>
+<span class="file">routes/routerMe.js:126</span> (idem lignes 271, 427, 482) : un joueur cross-save a
+plusieurs memberships et <code>[0]</code> n'est pas garanti être le bon → coffre vide ou mauvaise
+plateforme. À corriger aux 4 endroits (ou mieux : factoriser en un helper
+<code>getDestinyMembership(user, headers)</code>) :
+</p>
+<pre><code>const r = membRes.data.Response;
+const primary = r.destinyMemberships.find(
+    m =&gt; m.membershipId === r.primaryMembershipId
+) || r.destinyMemberships.find(m =&gt; m.crossSaveOverride === m.membershipType)
+  || r.destinyMemberships[0];
+const { membershipId, membershipType } = primary;</code></pre>
+
+<h3><span class="tag tag-i">I6</span>Mauvaise table de manifest dans routerData.js — bug logique + route sans auth</h3>
+<p>
+<span class="file">routes/routerData.js:6-8</span> : la route s'appelle <code>/item/:hash</code>,
+l'exemple en commentaire (2264350288) est un hash d'<strong>item</strong>, mais la requête interroge
+<code>DestinyStatDefinition</code>. C'est exactement le genre de coquille recherchée : la route renvoie
+404 (ou pire, une stat homonyme) pour tout vrai item. De plus
+<code>item.displayProperties.name</code> crashe si <code>displayProperties</code> est absent,
+et la route est publique.
+</p>
+<pre><code>router.get('/item/:hash', (req, res) =&gt; {
+    const item = getDefinition('DestinyInventoryItemDefinition', req.params.hash);
+    if (!item) return res.status(404).json({ error: 'Item introuvable' });
+    res.json({
+        name: item.displayProperties?.name ?? 'Inconnu',
+        icon: item.displayProperties?.icon
+              ? `https://www.bungie.net${item.displayProperties.icon}` : '',
+        type: item.itemTypeDisplayName ?? '',
+    });
+});</code></pre>
+
+<h3><span class="tag tag-i">I7</span>Aucune stratégie de mise à jour du manifest</h3>
+<p>
+<code>manifest.db</code> (305 Mo) n'est ni commité ni téléchargé au déploiement : il doit être copié à la
+main dans le volume, et <strong>devient périmé à chaque patch Destiny</strong> (les définitions changent
+toutes les ~6 semaines ; les nouveaux items renverront <code>null</code> → items invisibles dans le
+coffre). Ajouter un script de bootstrap qui interroge <code>GET /Destiny2/Manifest/</code>, compare la
+version stockée, télécharge le <code>mobileWorldContentPaths.fr</code> et remplace le fichier —
+exécuté au démarrage du conteneur et/ou via cron.
+</p>
+
+<div class="pagebreak"></div>
+<h2 class="mineur">🟡 NIVEAU MINEUR</h2>
+
+<table>
+  <tr><th style="width:34px">#</th><th>Problème</th><th>Correctif</th></tr>
+  <tr><td>M1</td>
+    <td><strong>Code mort</strong> : <span class="file">services/bungieService.js</span> jamais importé ;
+    <span class="file">component/Modal.vue</span> fait 0 octet ;
+    <span class="file">views/HomeView.vue</span> n'est dans aucune route ;
+    <code>showToast</code> de <span class="file">Dashboard.vue:307</span> jamais appelé ;
+    styles header/nav de <span class="file">App.vue</span> orphelins ;
+    <code>routerData</code> jamais appelé par le front</td>
+    <td><code>git rm</code> les fichiers, supprimer le code inutilisé</td></tr>
+  <tr><td>M2</td>
+    <td><strong>Ligne de debug oubliée en prod</strong> : <span class="file">ItemDetailModal.vue:20</span>
+    affiche <code>itemHash: …</code> en orange monospace dans la modale</td>
+    <td>Supprimer la ligne</td></tr>
+  <tr><td>M3</td>
+    <td>Coquille dans <span class="file">src/backend/.gitignore</span> : <code>data/user.db</code>
+    (singulier) au lieu de <code>users.db</code> — c'est en partie pour ça que le fichier a fini commité</td>
+    <td>Corriger en <code>data/*.db</code></td></tr>
+  <tr><td>M4</td>
+    <td>Duplication massive : <code>parseJwt</code> / <code>applyUser</code> / <code>showToast</code> /
+    <code>fetchDestinyData</code> copiés-collés entre <span class="file">Dashboard.vue</span> et
+    <span class="file">Vault.vue</span> ; <code>CLASS_MAP</code> redéclaré inline dans
+    <span class="file">routerMe.js:51</span></td>
+    <td>Extraire un composable <code>useAuth()</code> + <code>useDestinyData()</code> ;
+    réutiliser <code>CLASS_MAP</code></td></tr>
+  <tr><td>M5</td>
+    <td><code>membershipCache</code> (<span class="file">routerMe.js:28</span>) : Map non bornée, jamais
+    invalidée (un re-link Bungie vers un autre compte garde l'ancien membership en cache)</td>
+    <td>Invalider l'entrée dans le callback OAuth ; borner la taille</td></tr>
+  <tr><td>M6</td>
+    <td>nginx public : pas de HSTS, pas de gzip, pas de http2</td>
+    <td>Ajouter <code>add_header Strict-Transport-Security "max-age=31536000" always;</code>,
+    <code>gzip on;</code>, <code>listen 443 ssl http2;</code> dans <span class="file">nginx/nginx.conf</span></td></tr>
+  <tr><td>M7</td>
+    <td>« Season of the Cipher · S26 » hardcodé à 3 endroits</td>
+    <td>Constante unique ou donnée API</td></tr>
+  <tr><td>M8</td>
+    <td><span class="file">src/backend/package.json:4</span> : <code>"main": "index.js"</code> mais le
+    fichier est <code>server.js</code></td>
+    <td><code>"main": "server.js"</code></td></tr>
+  <tr><td>M9</td>
+    <td>Surbrillance drag collante : les <code>equip-slot</code> ont <code>@dragover</code> mais pas de
+    <code>@dragleave</code> (<span class="file">Vault.vue:106</span>)</td>
+    <td>Ajouter <code>@dragleave="dragOverTarget = null"</code></td></tr>
+  <tr><td>M10</td>
+    <td>Pas de middleware d'erreur global Express ni de route <code>GET /health</code>
+    (utile pour le healthcheck Docker/CI)</td>
+    <td><code>app.get('/health', (_, res) =&gt; res.json({ ok: true }))</code> + handler d'erreur final</td></tr>
+</table>
+
+<h2 class="synthese">📋 SYNTHÈSE</h2>
+
+<table>
+  <tr><th>Priorité</th><th>Nombre</th><th>Thème dominant</th></tr>
+  <tr><td>🔴 Critique</td><td>4</td>
+    <td><strong>Fuite de données déjà publique (C1)</strong> — à traiter aujourd'hui :
+    purge git + rotation des secrets</td></tr>
+  <tr><td>🟠 Important</td><td>7</td>
+    <td>Durcissement auth/CORS, prod cassée (SPA 404, Node 18), perfs manifest</td></tr>
+  <tr><td>🟡 Mineur</td><td>10</td>
+    <td>Code mort, duplication, hygiène config</td></tr>
+</table>
+
+<p>
+L'architecture (séparation routes/services/middleware, file de transferts optimiste côté Vault,
+tests + CI) est solide pour un projet de cette taille. Les deux fichiers à refactorer en priorité
+après les correctifs de sécurité : <span class="file">routerMe.js</span> (factoriser le trio
+ensureFreshToken / membership / headers répété 4×) et le duo
+<span class="file">Dashboard.vue</span> / <span class="file">Vault.vue</span> (composables partagés).
+</p>
+
+<div class="footer">
+  Rapport généré le 11 juin 2026 · Audit réalisé avec Claude Code · Guardian Ledger — commit 50c8cf8
+</div>
+
+</body>
+</html>
